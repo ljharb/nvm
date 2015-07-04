@@ -22,14 +22,18 @@ nvm_make_alias() {
 
 nvm_ls_remote > "$MOCKS_DIR/nvm_ls_remote.txt"
 nvm_ls_remote_iojs > "$MOCKS_DIR/nvm_ls_remote_iojs.txt"
+nvm_ls_remote_iojs_rc > "$MOCKS_DIR/nvm_ls_remote_iojs_rc.txt"
 NVM_LTS=* nvm_ls_remote > "$MOCKS_DIR/nvm_ls_remote LTS.txt"
 NVM_LTS=argon nvm_ls_remote > "$MOCKS_DIR/nvm_ls_remote LTS argon.txt"
 nvm_download -L -s "$NVM_NODEJS_ORG_MIRROR/index.tab" -o - > "$MOCKS_DIR/nodejs.org-dist-index.tab"
 nvm_download -L -s "$NVM_IOJS_ORG_MIRROR/index.tab" -o - > "$MOCKS_DIR/iojs.org-dist-index.tab"
+nvm_download -L -s "$NVM_IOJS_ORG_RC_MIRROR/index.tab" -o - > "$MOCKS_DIR/iojs.org-downloads-rc-index.tab"
 nvm ls-remote > "$MOCKS_DIR/nvm ls-remote.txt"
 nvm ls-remote --lts > "$MOCKS_DIR/nvm ls-remote lts.txt"
 nvm ls-remote node > "$MOCKS_DIR/nvm ls-remote node.txt"
 nvm ls-remote iojs > "$MOCKS_DIR/nvm ls-remote iojs.txt"
+NVM_ENABLE_RELEASE_CANDIDATES=true nvm ls-remote iojs:rc > "$MOCKS_DIR/nvm ls-remote iojs_rc.txt"
+
 nvm_print_implicit_alias remote stable > "$MOCKS_DIR/nvm_print_implicit_alias remote stable.txt"
 nvm_ls_remote stable > "$MOCKS_DIR/nvm_ls_remote stable.txt"
 

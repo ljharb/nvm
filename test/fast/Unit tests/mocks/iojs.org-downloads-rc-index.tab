@@ -1,0 +1,6 @@
+version	date	files	npm	v8	uv	zlib	openssl	modules
+v3.0.0-rc.7	2015-08-03	headers,linux-armv6l,linux-armv7l,linux-x64,linux-x86,osx-x64-pkg,osx-x64-tar,src,win-x64-exe,win-x64-msi,win-x86-exe,win-x86-msi	2.13.3	4.4.63.26	1.6.1	1.2.8	1.0.2d	45
+v3.0.0-rc.6	2015-07-30	headers,linux-armv6l,linux-armv7l,linux-x64,linux-x86,osx-x64-pkg,osx-x64-tar,src,win-x64-exe,win-x64-msi,win-x86-exe,win-x86-msi	2.13.2	4.4.63.12	1.6.1	1.2.8	1.0.2d	45
+v3.0.0-rc.5	2015-07-24	headers,linux-armv6l,linux-armv7l,linux-x64,linux-x86,osx-x64-pkg,osx-x64-tar,src,win-x64-exe,win-x64-msi,win-x86-exe,win-x86-msi	2.13.1	4.4.63.12	1.6.1	1.2.8	1.0.2d	45
+v3.0.0-rc.4	2015-07-22	headers,linux-armv6l,linux-armv7l,linux-x64,linux-x86,osx-x64-pkg,osx-x64-tar,src,win-x64-exe,win-x64-msi,win-x86-exe,win-x86-msi	2.13.1	4.4.63.12	1.6.1	1.2.8	1.0.2d	45
+v3.0.0-rc.3	2015-07-12	headers,linux-armv6l,linux-armv7l,linux-x64,linux-x86,osx-x64-pkg,osx-x64-tar,src,win-x64-exe,win-x64-msi,win-x86-exe,win-x86-msi	2.12.1	4.4.63.12	1.6.1	1.2.8	1.0.2d	45

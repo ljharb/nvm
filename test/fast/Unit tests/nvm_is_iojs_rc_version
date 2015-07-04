@@ -1,0 +1,11 @@
+#!/bin/sh
+
+die () { echo $@ ; exit 1; }
+
+. ../../../nvm.sh
+
+nvm_is_iojs_rc_version 'iojs:rc-' || die '"nvm_is_iojs_rc_version iojs:rc- was not true'
+nvm_is_iojs_rc_version 'iojs:rc-foo' || die '"nvm_is_iojs_rc_version iojs:rc- was not true'
+! nvm_is_iojs_rc_version 'iojs:rc' || die '"nvm_is_iojs_rc_version iojs:rc was not false'
+! nvm_is_iojs_rc_version 'iojs-v1.0.0' || die '"nvm_is_iojs_rc_version iojs-v1.0.0" was not false'
+! nvm_is_iojs_rc_version 'v1.0.0' || die '"nvm_is_iojs_rc_version v1.0.0" was not false'

@@ -130,6 +130,15 @@ if [ -z "${NVM_IOJS_ORG_MIRROR-}" ]; then
   export NVM_IOJS_ORG_MIRROR="https://iojs.org/dist"
 fi
 
+if [ -z "$NVM_IOJS_ORG_RC_MIRROR" ]; then
+  export NVM_IOJS_ORG_RC_MIRROR="https://iojs.org/download/rc"
+fi
+
+# default release candidates to "disabled"
+if [ -n "${NVM_ENABLE_RELEASE_CANDIDATES-}" ] && [ "${NVM_ENABLE_RELEASE_CANDIDATES}" != true ]; then
+  unset NVM_ENABLE_RELEASE_CANDIDATES
+fi
+
 nvm_tree_contains_path() {
   local tree
   tree="${1-}"
@@ -219,11 +228,13 @@ nvm_version_greater_than_or_equal_to() {
 nvm_version_dir() {
   local NVM_WHICH_DIR
   NVM_WHICH_DIR="${1-}"
-  if [ -z "${NVM_WHICH_DIR}" ] || [ "${NVM_WHICH_DIR}" = "new" ]; then
+  if [ "${NVM_WHICH_DIR}" = 'new' ]; then
     nvm_echo "${NVM_DIR}/versions/node"
-  elif [ "_${NVM_WHICH_DIR}" = "_iojs" ]; then
+  elif [ "${NVM_WHICH_DIR}" = 'iojs' ]; then
     nvm_echo "${NVM_DIR}/versions/io.js"
-  elif [ "_${NVM_WHICH_DIR}" = "_old" ]; then
+  elif [ "${NVM_WHICH_DIR}" = 'iojs:rc' ]; then
+    echo "$NVM_DIR/versions/release_candidates/io.js"
+  elif [ "${NVM_WHICH_DIR}" = 'old' ]; then
     nvm_echo "${NVM_DIR}"
   else
     nvm_err 'unknown version dir'
@@ -243,6 +254,8 @@ nvm_version_path() {
     return 3
   elif nvm_is_iojs_version "${VERSION}"; then
     nvm_echo "$(nvm_version_dir iojs)/$(nvm_strip_iojs_prefix "${VERSION}")"
+  elif nvm_is_iojs_rc_version "${VERSION}"; then
+    echo "$(nvm_version_dir iojs:rc)/$(nvm_strip_iojs_prefix "${VERSION}")"
   elif nvm_version_greater 0.12.0 "${VERSION}"; then
     nvm_echo "$(nvm_version_dir old)/${VERSION}"
   else
@@ -315,6 +328,9 @@ nvm_remote_version() {
       "$(nvm_iojs_prefix)")
         VERSION="$(NVM_LTS="${NVM_LTS-}" nvm_ls_remote_iojs | command tail -1)" &&:
       ;;
+      "$(nvm_iojs_rc_prefix)")
+        VERSION="$(nvm_ls_remote_iojs_rc | tail -n1)"
+      ;;
       *)
         VERSION="$(NVM_LTS="${NVM_LTS-}" nvm_ls_remote "${PATTERN}")" &&:
       ;;
@@ -340,7 +356,8 @@ nvm_remote_versions() {
   NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
   local NVM_NODE_PREFIX
   NVM_NODE_PREFIX="$(nvm_node_prefix)"
-
+  local NVM_IOJS_RC_PREFIX
+  NVM_IOJS_RC_PREFIX="$(nvm_iojs_rc_prefix)"
   local PATTERN
   PATTERN="${1-}"
 
@@ -350,12 +367,16 @@ nvm_remote_versions() {
   fi
 
   case "${PATTERN}" in
+    "${NVM_NODE_PREFIX}")
+       NVM_FLAVOR="${PATTERN}"
+       unset PATTERN
+    ;;
     "${NVM_IOJS_PREFIX}" | "io.js")
        NVM_FLAVOR="${NVM_IOJS_PREFIX}"
        unset PATTERN
     ;;
-    "${NVM_NODE_PREFIX}")
-       NVM_FLAVOR="${NVM_NODE_PREFIX}"
+    "${NVM_IOJS_RC_PREFIX}" | "io.js:rc")
+       NVM_FLAVOR="${NVM_IOJS_RC_PREFIX}"
        unset PATTERN
     ;;
   esac
@@ -390,8 +411,24 @@ nvm_remote_versions() {
     NVM_LS_REMOTE_IOJS_EXIT_CODE=$?
   fi
 
+  local NVM_LS_REMOTE_IOJS_RC_EXIT_CODE
+  NVM_LS_REMOTE_IOJS_RC_EXIT_CODE=0
+  local NVM_LS_REMOTE_IOJS_RC_OUTPUT
+  NVM_LS_REMOTE_IOJS_RC_OUTPUT=''
+
+  if [ "${NVM_ENABLE_RELEASE_CANDIDATES-}" = true ] && ( \
+    [ "${NVM_FLAVOR}" = "${NVM_IOJS_RC_PREFIX}" ] || ( \
+      [ "${NVM_FLAVOR}" != "${NVM_NODE_PREFIX}" ] && \
+      [ "${NVM_FLAVOR}" != "${NVM_IOJS_PREFIX}" ] \
+    ) \
+  ); then
+    NVM_LS_REMOTE_IOJS_RC_OUTPUT=$(nvm_ls_remote_iojs_rc "${PATTERN}")
+    NVM_LS_REMOTE_IOJS_RC_EXIT_CODE=$?
+  fi
+
   VERSIONS="$(nvm_echo "${NVM_LS_REMOTE_PRE_MERGED_OUTPUT}
 ${NVM_LS_REMOTE_IOJS_OUTPUT}
+${NVM_LS_REMOTE_IOJS_RC_OUTPUT}
 ${NVM_LS_REMOTE_POST_MERGED_OUTPUT}" | nvm_grep -v "N/A" | command sed '/^$/d')"
 
   if [ -z "${VERSIONS}" ]; then
@@ -399,7 +436,7 @@ ${NVM_LS_REMOTE_POST_MERGED_OUTPUT}" | nvm_grep -v "N/A" | command sed '/^$/d')"
     return 3
   fi
   nvm_echo "${VERSIONS}"
-  return $NVM_LS_REMOTE_EXIT_CODE || $NVM_LS_REMOTE_IOJS_EXIT_CODE
+  return $NVM_LS_REMOTE_EXIT_CODE || $NVM_LS_REMOTE_IOJS_EXIT_CODE || $NVM_LS_REMOTE_IOJS_RC_EXIT_CODE
 }
 
 nvm_is_valid_version() {
@@ -408,6 +445,7 @@ nvm_is_valid_version() {
   fi
   case "${1-}" in
     "$(nvm_iojs_prefix)" | \
+    "$(nvm_iojs_rc_prefix)" | \
     "$(nvm_node_prefix)")
       return 0
     ;;
@@ -432,6 +470,8 @@ nvm_ensure_version_prefix() {
   NVM_VERSION="$(nvm_strip_iojs_prefix "${1-}" | command sed -e 's/^\([0-9]\)/v\1/g')"
   if nvm_is_iojs_version "${1-}"; then
     nvm_add_iojs_prefix "${NVM_VERSION}"
+  elif nvm_is_iojs_rc_version "${1-}"; then
+    nvm_add_iojs_rc_prefix "${NVM_VERSION}"
   else
     nvm_echo "${NVM_VERSION}"
   fi
@@ -476,7 +516,10 @@ nvm_strip_path() {
     -e "s#${NVM_DIR}/[^/]*${2-}[^:]*##g" \
     -e "s#${NVM_DIR}/versions/[^/]*/[^/]*${2-}[^:]*:##g" \
     -e "s#:${NVM_DIR}/versions/[^/]*/[^/]*${2-}[^:]*##g" \
-    -e "s#${NVM_DIR}/versions/[^/]*/[^/]*${2-}[^:]*##g"
+    -e "s#${NVM_DIR}/versions/[^/]*/[^/]*${2-}[^:]*##g" \
+    -e "s#${NVM_DIR}/versions/release_candidates/[^/]*/[^/]*${2-}[^:]*:##g" \
+    -e "s#:${NVM_DIR}/versions/release_candidates/[^/]*/[^/]*${2-}[^:]*##g" \
+    -e "s#${NVM_DIR}/versions/release_candidates/[^/]*/[^/]*${2-}[^:]*##g"
 }
 
 nvm_prepend_path() {
@@ -616,8 +659,13 @@ nvm_list_aliases() {
     NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}"
   done
 
+  local NVM_IOJS_RC_PREFIX
+  NVM_IOJS_RC_PREFIX="$(nvm_iojs_rc_prefix)"
   local ALIAS_NAME
-  for ALIAS_NAME in "$(nvm_node_prefix)" "stable" "unstable" "$(nvm_iojs_prefix)"; do
+  for ALIAS_NAME in "$(nvm_node_prefix)" "stable" "unstable" "$(nvm_iojs_prefix)" "${NVM_IOJS_RC_PREFIX}"; do
+    if [ "${NVM_ENABLE_RELEASE_CANDIDATES-}" != true ] && [ "${ALIAS}" = "${NVM_IOJS_RC_PREFIX}" ]; then
+      continue
+    fi
     if [ ! -f "${NVM_ALIAS_DIR}/${ALIAS_NAME}" ] && ([ -z "${ALIAS}" ] || [ "${ALIAS_NAME}" = "${ALIAS}" ]); then
       NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_default_alias "${ALIAS_NAME}"
     fi
@@ -658,6 +706,8 @@ nvm_ls_current() {
     nvm_echo 'none'
   elif nvm_tree_contains_path "$(nvm_version_dir iojs)" "${NVM_LS_CURRENT_NODE_PATH}"; then
     nvm_add_iojs_prefix "$(iojs --version 2>/dev/null)"
+  elif nvm_tree_contains_path "$(nvm_version_dir iojs:rc)" "${NVM_LS_CURRENT_NODE_PATH}"; then
+    nvm_add_iojs_rc_prefix "$(iojs --version 2>/dev/null)"
   elif nvm_tree_contains_path "${NVM_DIR}" "${NVM_LS_CURRENT_NODE_PATH}"; then
     local VERSION
     VERSION="$(node --version 2>/dev/null)"
@@ -705,11 +755,14 @@ nvm_resolve_alias() {
   if [ -n "${ALIAS}" ] && [ "_${ALIAS}" != "_${PATTERN}" ]; then
     local NVM_IOJS_PREFIX
     NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
+    local NVM_IOJS_RC_PREFIX
+    NVM_IOJS_RC_PREFIX="$(nvm_iojs_rc_prefix)"
     local NVM_NODE_PREFIX
     NVM_NODE_PREFIX="$(nvm_node_prefix)"
     case "${ALIAS}" in
       '∞' | \
       "${NVM_IOJS_PREFIX}" | "${NVM_IOJS_PREFIX}-" | \
+      "${NVM_IOJS_RC_PREFIX}" | "${NVM_IOJS_RC_PREFIX}-" | \
       "${NVM_NODE_PREFIX}" )
         nvm_echo "${ALIAS}"
       ;;
@@ -753,6 +806,9 @@ nvm_resolve_local_alias() {
 nvm_iojs_prefix() {
   nvm_echo 'iojs'
 }
+nvm_iojs_rc_prefix() {
+  echo "iojs:rc"
+}
 nvm_node_prefix() {
   nvm_echo 'node'
 }
@@ -762,17 +818,30 @@ nvm_is_iojs_version() {
   return 1
 }
 
+nvm_is_iojs_rc_version() {
+  case "$1" in iojs:rc-*) return 0 ;; esac
+  return 1
+}
+
 nvm_add_iojs_prefix() {
   nvm_echo "$(nvm_iojs_prefix)-$(nvm_ensure_version_prefix "$(nvm_strip_iojs_prefix "${1-}")")"
+}
+nvm_add_iojs_rc_prefix() {
+  command echo "$(nvm_iojs_rc_prefix)-$(nvm_ensure_version_prefix "$(nvm_strip_iojs_prefix "$1")")"
 }
 
 nvm_strip_iojs_prefix() {
   local NVM_IOJS_PREFIX
   NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
-  if [ "${1-}" = "${NVM_IOJS_PREFIX}" ]; then
+  local NVM_IOJS_RC_PREFIX
+  NVM_IOJS_RC_PREFIX="$(nvm_iojs_rc_prefix)"
+  if [ "${1-}" = "${NVM_IOJS_PREFIX}" ] || [ "${1-}" = "${NVM_IOJS_RC_PREFIX}" ]; then
     nvm_echo
   else
-    nvm_echo "${1#"${NVM_IOJS_PREFIX}"-}"
+    local NVM_STRIPPED
+    NVM_STRIPPED="${1##"$NVM_IOJS_RC_PREFIX"-}"
+    NVM_STRIPPED="${NVM_STRIPPED##"$NVM_IOJS_PREFIX"-}"
+    echo "${NVM_STRIPPED}"
   fi
 }
 
@@ -788,17 +857,21 @@ nvm_ls() {
 
   local NVM_IOJS_PREFIX
   NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
+  local NVM_IOJS_RC_PREFIX
+  NVM_IOJS_RC_PREFIX="$(nvm_iojs_rc_prefix)"
   local NVM_NODE_PREFIX
   NVM_NODE_PREFIX="$(nvm_node_prefix)"
   local NVM_VERSION_DIR_IOJS
   NVM_VERSION_DIR_IOJS="$(nvm_version_dir "${NVM_IOJS_PREFIX}")"
+  local NVM_VERSION_DIR_IOJS_RC
+  NVM_VERSION_DIR_IOJS_RC="$(nvm_version_dir "${NVM_IOJS_RC_PREFIX}")"
   local NVM_VERSION_DIR_NEW
   NVM_VERSION_DIR_NEW="$(nvm_version_dir new)"
   local NVM_VERSION_DIR_OLD
   NVM_VERSION_DIR_OLD="$(nvm_version_dir old)"
 
   case "${PATTERN}" in
-    "${NVM_IOJS_PREFIX}" | "${NVM_NODE_PREFIX}" )
+    "${NVM_IOJS_PREFIX}" | "${NVM_NODE_PREFIX}" | "${NVM_IOJS_RC_PREFIX}" )
       PATTERN="${PATTERN}-"
     ;;
     *)
@@ -822,10 +895,15 @@ nvm_ls() {
       VERSIONS="${PATTERN}"
     elif nvm_is_version_installed "$(nvm_add_iojs_prefix "${PATTERN}")"; then
       VERSIONS="$(nvm_add_iojs_prefix "${PATTERN}")"
+    elif nvm_is_version_installed "$(nvm_add_iojs_rc_prefix "${PATTERN}")"; then
+      VERSIONS="$(nvm_add_iojs_rc_prefix "${PATTERN}")"
     fi
   else
     case "${PATTERN}" in
-      "${NVM_IOJS_PREFIX}-" | "${NVM_NODE_PREFIX}-" | "system") ;;
+      'system' \
+      | "${NVM_IOJS_PREFIX}-" | "${NVM_NODE_PREFIX}-" \
+      | "${NVM_IOJS_RC_PREFIX}-" \
+      ) ;;
       *)
         local NUM_VERSION_GROUPS
         NUM_VERSION_GROUPS="$(nvm_num_version_groups "${PATTERN}")"
@@ -848,6 +926,8 @@ nvm_ls() {
     NVM_DIRS_TO_SEARCH2=''
     local NVM_DIRS_TO_SEARCH3
     NVM_DIRS_TO_SEARCH3=''
+    local NVM_DIRS_TO_SEARCH4
+    NVM_DIRS_TO_SEARCH4=''
     local NVM_ADD_SYSTEM
     NVM_ADD_SYSTEM=false
     if nvm_is_iojs_version "${PATTERN}"; then
@@ -856,6 +936,9 @@ nvm_ls() {
       if nvm_has_system_iojs; then
         NVM_ADD_SYSTEM=true
       fi
+    elif nvm_is_iojs_rc_version "${PATTERN}"; then
+      NVM_DIRS_TO_SEARCH1="${NVM_VERSION_DIR_IOJS_RC}"
+      PATTERN="$(nvm_strip_iojs_prefix "${PATTERN}")"
     elif [ "${PATTERN}" = "${NVM_NODE_PREFIX}-" ]; then
       NVM_DIRS_TO_SEARCH1="${NVM_VERSION_DIR_OLD}"
       NVM_DIRS_TO_SEARCH2="${NVM_VERSION_DIR_NEW}"
@@ -863,10 +946,13 @@ nvm_ls() {
       if nvm_has_system_node; then
         NVM_ADD_SYSTEM=true
       fi
+    elif [ "${NVM_ENABLE_RELEASE_CANDIDATES-}" = true ] && [ "${PATTERN}" = "${NVM_IOJS_RC_PREFIX}-" ]; then
+      NVM_DIRS_TO_SEARCH1="${NVM_VERSION_DIR_IOJS_RC}"
     else
       NVM_DIRS_TO_SEARCH1="${NVM_VERSION_DIR_OLD}"
       NVM_DIRS_TO_SEARCH2="${NVM_VERSION_DIR_NEW}"
       NVM_DIRS_TO_SEARCH3="${NVM_VERSION_DIR_IOJS}"
+      NVM_DIRS_TO_SEARCH4="${NVM_VERSION_DIR_IOJS_RC}"
       if nvm_has_system_iojs || nvm_has_system_node; then
         NVM_ADD_SYSTEM=true
       fi
@@ -881,6 +967,9 @@ nvm_ls() {
     if ! [ -d "${NVM_DIRS_TO_SEARCH3}" ] || ! (command ls -1qA "${NVM_DIRS_TO_SEARCH3}" | nvm_grep -q .); then
       NVM_DIRS_TO_SEARCH3="${NVM_DIRS_TO_SEARCH2}"
     fi
+    if ! [ -d "${NVM_DIRS_TO_SEARCH4}" ] || ! (command ls -1qA "${NVM_DIRS_TO_SEARCH4}" | nvm_grep -q .); then
+      NVM_DIRS_TO_SEARCH4="${NVM_DIRS_TO_SEARCH3}"
+    fi
 
     local SEARCH_PATTERN
     if [ -z "${PATTERN}" ]; then
@@ -889,9 +978,10 @@ nvm_ls() {
     else
       SEARCH_PATTERN="$(echo "${PATTERN}" | sed "s#\.#\\\.#g;")"
     fi
-    if [ -n "${NVM_DIRS_TO_SEARCH1}${NVM_DIRS_TO_SEARCH2}${NVM_DIRS_TO_SEARCH3}" ]; then
-      VERSIONS="$(command find "${NVM_DIRS_TO_SEARCH1}"/* "${NVM_DIRS_TO_SEARCH2}"/* "${NVM_DIRS_TO_SEARCH3}"/* -name . -o -type d -prune -o -path "${PATTERN}*" \
+    if [ -n "${NVM_DIRS_TO_SEARCH1}${NVM_DIRS_TO_SEARCH2}${NVM_DIRS_TO_SEARCH3}${NVM_DIRS_TO_SEARCH4}" ]; then
+      VERSIONS="$(command find "${NVM_DIRS_TO_SEARCH1}"/* "${NVM_DIRS_TO_SEARCH2}"/* "${NVM_DIRS_TO_SEARCH3}"/* "${NVM_DIRS_TO_SEARCH4}"/* -name . -o -type d -prune -o -path "${PATTERN}*" \
         | command sed "
+            s#${NVM_VERSION_DIR_IOJS_RC}/#versions/${NVM_IOJS_RC_PREFIX}/#;
             s#${NVM_VERSION_DIR_IOJS}/#versions/${NVM_IOJS_PREFIX}/#;
             s#^${NVM_DIR}/##;
             \#^[^v]# d;
@@ -901,7 +991,7 @@ nvm_ls() {
             \#${SEARCH_PATTERN}# !d;
           " \
         | command sed "s#^\([^/]\{1,\}\)/\(.*\)\$#\2.\1#;" \
-        | command sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n \
+        | command sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n -k 4,3n \
         | command sed "
             s#\(.*\)\.\([^\.]\{1,\}\)\$#\2-\1#;
             s#^${NVM_NODE_PREFIX}-##;
@@ -943,6 +1033,10 @@ nvm_ls_remote() {
   NVM_LTS="${NVM_LTS-}" nvm_ls_remote_index_tab node std "${PATTERN}"
 }
 
+nvm_ls_remote_iojs_rc() {
+  NVM_LTS="${NVM_LTS-}" nvm_ls_remote_index_tab iojs rc "${1-}"
+}
+
 nvm_ls_remote_iojs() {
   NVM_LTS="${NVM_LTS-}" nvm_ls_remote_index_tab iojs std "${1-}"
 }
@@ -972,6 +1066,7 @@ nvm_ls_remote_index_tab() {
   PREFIX=''
   case "${FLAVOR}-${TYPE}" in
     iojs-std) PREFIX="$(nvm_iojs_prefix)-" ;;
+    iojs-rc) PREFIX="$(nvm_iojs_rc_prefix)-" ;;
     node-std) PREFIX='' ;;
     iojs-*)
       nvm_err 'unknown type of io.js release'
@@ -1018,6 +1113,7 @@ nvm_ls_remote_index_tab() {
   local LTS_VERSION
   command mkdir -p "$(nvm_alias_path)/lts"
   nvm_echo "${VERSION_LIST}" \
+    | command sed "s/^node-//;" \
     | awk '{
         if ($10 ~ /^\-?$/) { next }
         if ($10 && !a[tolower($10)]++) {
@@ -1251,27 +1347,39 @@ nvm_print_versions() {
   local LTS_FORMAT
   nvm_echo "${1-}" \
   | command sed '1!G;h;$!d' \
-  | command awk '{ if ($2 && a[$2]++) { print $1, "(LTS: " $2 ")" } else if ($2) { print $1, "(Latest LTS: " $2 ")" } else { print $0 } }' \
+  | command awk '{ if ($2 && a[$2]++) { print $1, "  (LTS: " $2 ")" } else if ($2) { print $1, "  (Latest LTS: " $2 ")" } else { print $0 } }' \
   | command sed '1!G;h;$!d' \
   | while read -r VERSION_LINE; do
     VERSION="${VERSION_LINE%% *}"
     LTS="${VERSION_LINE#* }"
-    FORMAT='%15s'
+    if nvm_is_iojs_rc_version "${VERSION}"; then
+      FORMAT='%22s'
+    else
+      FORMAT='%17s'
+    fi
     if [ "_$VERSION" = "_$NVM_CURRENT" ]; then
       if [ "${NVM_HAS_COLORS-}" = '1' ]; then
-        FORMAT='\033[0;32m-> %12s\033[0m'
+        FORMAT='\033[0;32m-> %14s\033[0m'
       else
-        FORMAT='-> %12s *'
+        FORMAT='-> %14s *'
       fi
     elif [ "$VERSION" = "system" ]; then
       if [ "${NVM_HAS_COLORS-}" = '1' ]; then
-        FORMAT='\033[0;33m%15s\033[0m'
+        FORMAT='\033[0;33m%17s\033[0m'
       fi
-    elif nvm_is_version_installed "$VERSION"; then
+    elif nvm_is_version_installed "${VERSION}"; then
       if [ "${NVM_HAS_COLORS-}" = '1' ]; then
-        FORMAT='\033[0;34m%15s\033[0m'
+        if nvm_is_iojs_rc_version "${VERSION}"; then
+          FORMAT='\033[0;34m%22s\033[0m'
+        else
+          FORMAT='\033[0;34m%17s\033[0m'
+        fi
       else
-        FORMAT='%15s *'
+        if nvm_is_iojs_rc_version "${VERSION}"; then
+          FORMAT='%22s *'
+        else
+          FORMAT='%17s *'
+        fi
       fi
     fi
     if [ "${LTS}" != "${VERSION}" ]; then
@@ -1304,15 +1412,21 @@ nvm_print_versions() {
 nvm_validate_implicit_alias() {
   local NVM_IOJS_PREFIX
   NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
+  local NVM_IOJS_RC_PREFIX
+  NVM_IOJS_RC_PREFIX="$(nvm_iojs_rc_prefix)"
   local NVM_NODE_PREFIX
   NVM_NODE_PREFIX="$(nvm_node_prefix)"
 
   case "$1" in
-    "stable" | "unstable" | "$NVM_IOJS_PREFIX" | "$NVM_NODE_PREFIX" )
+    "stable" | "unstable" | "${NVM_IOJS_PREFIX}" | "${NVM_NODE_PREFIX}" | "${NVM_IOJS_RC_PREFIX}" )
       return
     ;;
     *)
-      nvm_err "Only implicit aliases 'stable', 'unstable', '$NVM_IOJS_PREFIX', and '$NVM_NODE_PREFIX' are supported."
+      if [ "${NVM_ENABLE_RELEASE_CANDIDATES-}" = true ]; then
+        nvm_err "Only implicit aliases 'stable', 'unstable', '${NVM_IOJS_PREFIX}', '${NVM_IOJS_RC_PREFIX}', and '${NVM_NODE_PREFIX}' are supported."
+      else
+        nvm_err "Only implicit aliases 'stable', 'unstable', '${NVM_IOJS_PREFIX}', and '${NVM_NODE_PREFIX}' are supported."
+      fi
       return 1
     ;;
   esac
@@ -1334,17 +1448,23 @@ nvm_print_implicit_alias() {
 
   local NVM_IOJS_PREFIX
   NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
+  local NVM_IOJS_RC_PREFIX
+  NVM_IOJS_RC_PREFIX="$(nvm_iojs_rc_prefix)"
   local NVM_NODE_PREFIX
   NVM_NODE_PREFIX="$(nvm_node_prefix)"
   local NVM_COMMAND
   local NVM_ADD_PREFIX_COMMAND
   local LAST_TWO
   case "$NVM_IMPLICIT" in
-    "$NVM_IOJS_PREFIX")
+    "${NVM_IOJS_PREFIX}" | "${NVM_IOJS_RC_PREFIX}" )
       NVM_COMMAND="nvm_ls_remote_iojs"
       NVM_ADD_PREFIX_COMMAND="nvm_add_iojs_prefix"
-      if [ "_$1" = "_local" ]; then
-        NVM_COMMAND="nvm_ls $NVM_IMPLICIT"
+      if [ "_${NVM_IMPLICIT}" = "_${NVM_IOJS_RC_PREFIX}" ]; then
+        NVM_COMMAND="nvm_ls_remote_iojs_rc"
+        NVM_ADD_PREFIX_COMMAND="nvm_add_iojs_rc_prefix"
+      fi
+      if [ "${1-}" = 'local' ]; then
+        NVM_COMMAND="nvm_ls ${NVM_IMPLICIT}"
       fi
 
       ZSH_HAS_SHWORDSPLIT_UNSET=1
@@ -1527,9 +1647,10 @@ nvm_is_merged_node_version() {
 }
 
 nvm_get_mirror() {
-  case "${1}-${2}" in
+  case "${1-}-${2-}" in
     node-std) nvm_echo "${NVM_NODEJS_ORG_MIRROR}" ;;
     iojs-std) nvm_echo "${NVM_IOJS_ORG_MIRROR}" ;;
+    iojs-rc) nvm_echo "${NVM_IOJS_ORG_RC_MIRROR}" ;;
     *)
       nvm_err 'unknown type of node.js or io.js release'
       return 1
@@ -1875,17 +1996,22 @@ nvm_install_source() {
 nvm_match_version() {
   local NVM_IOJS_PREFIX
   NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
+  local NVM_IOJS_RC_PREFIX
+  NVM_IOJS_RC_PREFIX="$(nvm_iojs_rc_prefix)"
   local PROVIDED_VERSION
-  PROVIDED_VERSION="$1"
-  case "_$PROVIDED_VERSION" in
-    "_$NVM_IOJS_PREFIX" | '_io.js')
-      nvm_version "$NVM_IOJS_PREFIX"
-    ;;
-    '_system')
+  PROVIDED_VERSION="${1-}"
+  case "${PROVIDED_VERSION}" in
+    'system')
       nvm_echo 'system'
     ;;
+    "$NVM_IOJS_PREFIX" | 'io.js')
+      nvm_version "${NVM_IOJS_PREFIX}"
+    ;;
+    "${NVM_IOJS_RC_PREFIX}")
+      nvm_version "${NVM_IOJS_RC_PREFIX}"
+    ;;
     *)
-      nvm_version "$PROVIDED_VERSION"
+      nvm_version "${PROVIDED_VERSION}"
     ;;
   esac
 }
@@ -2332,8 +2458,13 @@ nvm() {
         return 5
       fi
 
+      local TYPE
+      TYPE='std'
       local FLAVOR
-      if nvm_is_iojs_version "$VERSION"; then
+      if [ "${NVM_ENABLE_RELEASE_CANDIDATES-}" = true ] && nvm_is_iojs_rc_version "${VERSION}"; then
+        FLAVOR="$(nvm_iojs_prefix)"
+        TYPE='rc'
+      elif nvm_is_iojs_version "${VERSION}"; then
         FLAVOR="$(nvm_iojs_prefix)"
       else
         FLAVOR="$(nvm_node_prefix)"
@@ -2367,7 +2498,7 @@ nvm() {
       local NVM_INSTALL_SUCCESS
       # skip binary install if "nobinary" option specified.
       if [ $nobinary -ne 1 ] && nvm_binary_available "$VERSION"; then
-        if nvm_install_binary "${FLAVOR}" std "${VERSION}"; then
+        if nvm_install_binary "${FLAVOR}" "${TYPE}" "${VERSION}"; then
           NVM_INSTALL_SUCCESS=true
         fi
       fi
@@ -2376,7 +2507,7 @@ nvm() {
           nvm_get_make_jobs
         fi
 
-        if nvm_install_source "${FLAVOR}" std "${VERSION}" "${NVM_MAKE_JOBS}" "${ADDITIONAL_PARAMETERS}"; then
+        if nvm_install_source "${FLAVOR}" "${TYPE}" "${VERSION}" "${NVM_MAKE_JOBS}" "${ADDITIONAL_PARAMETERS}"; then
           NVM_INSTALL_SUCCESS=true
         fi
       fi
@@ -2415,7 +2546,7 @@ nvm() {
       esac
 
       if [ "_${VERSION}" = "_$(nvm_ls_current)" ]; then
-        if nvm_is_iojs_version "${VERSION}"; then
+        if nvm_is_iojs_version "${VERSION}" || nvm_is_iojs_rc_version "${VERSION}"; then
           nvm_err "nvm: Cannot uninstall currently-active io.js version, ${VERSION} (inferred from ${PATTERN})."
         else
           nvm_err "nvm: Cannot uninstall currently-active node version, ${VERSION} (inferred from ${PATTERN})."
@@ -2428,18 +2559,25 @@ nvm() {
         return;
       fi
 
-      local SLUG_BINARY
-      local SLUG_SOURCE
-      if nvm_is_iojs_version "${VERSION}"; then
-        SLUG_BINARY="$(nvm_get_download_slug iojs binary std "${VERSION}")"
-        SLUG_SOURCE="$(nvm_get_download_slug iojs source std "${VERSION}")"
+      local TYPE
+      TYPE='std'
+      local FLAVOR
+      if nvm_is_iojs_rc_version "${VERSION}"; then
+        FLAVOR="$(nvm_iojs_prefix)"
+        TYPE='rc'
+      elif nvm_is_iojs_version "${VERSION}"; then
+        FLAVOR="$(nvm_iojs_prefix)"
       else
-        SLUG_BINARY="$(nvm_get_download_slug node binary std "${VERSION}")"
-        SLUG_SOURCE="$(nvm_get_download_slug node source std "${VERSION}")"
+        FLAVOR="$(nvm_node_prefix)"
       fi
 
+      local SLUG_BINARY
+      local SLUG_SOURCE
+      SLUG_BINARY="$(nvm_get_download_slug "${FLAVOR}" binary "${TYPE}" "${VERSION}")"
+      SLUG_SOURCE="$(nvm_get_download_slug "${FLAVOR}" source "${TYPE}" "${VERSION}")"
+
       local NVM_SUCCESS_MSG
-      if nvm_is_iojs_version "${VERSION}"; then
+      if nvm_is_iojs_version "${VERSION}" || nvm_is_iojs_rc_version "${VERSION}"; then
         NVM_SUCCESS_MSG="Uninstalled io.js $(nvm_strip_iojs_prefix "${VERSION}")"
       else
         NVM_SUCCESS_MSG="Uninstalled node ${VERSION}"
@@ -2825,11 +2963,16 @@ nvm() {
           --no-colors) NVM_NO_COLORS="${1}" ;;
           --*)
             nvm_err "Unsupported option \"${1}\"."
-            return 55;
+            return 55
           ;;
           *)
             if [ -z "${PATTERN-}" ]; then
               PATTERN="${1-}"
+              if [ "${NVM_ENABLE_RELEASE_CANDIDATES-}" != true ] && [ "${PATTERN}" = "$(nvm_iojs_rc_prefix)" ]; then
+                nvm_err 'Support for io.js release candidates is disabled by default.'
+                nvm_err 'Set `$NVM_ENABLE_RELEASE_CANDIDATES` to `true` to enable it.'
+                return 56
+              fi
               if [ -z "${NVM_LTS-}" ]; then
                 case "${PATTERN}" in
                   'lts/*') NVM_LTS='*' ;;
@@ -3027,7 +3170,7 @@ nvm() {
       set +f; unset IFS # restore variable expansion in case $LINKS was empty
     ;;
     "clear-cache" )
-      command rm -f "$NVM_DIR/v*" "$(nvm_version_dir)" 2>/dev/null
+      command rm -f "$NVM_DIR/v*" "$(nvm_version_dir new)" 2>/dev/null
       nvm_echo 'Cache cleared.'
     ;;
     "version" )
@@ -3073,10 +3216,10 @@ nvm() {
     ;;
     "unload" )
       unset -f nvm \
-        nvm_iojs_prefix nvm_node_prefix \
-        nvm_add_iojs_prefix nvm_strip_iojs_prefix \
-        nvm_is_iojs_version nvm_is_alias \
-        nvm_ls_remote nvm_ls_remote_iojs nvm_ls_remote_index_tab \
+        nvm_iojs_prefix nvm_iojs_rc_prefix nvm_node_prefix \
+        nvm_add_iojs_prefix nvm_add_iojs_rc_prefix nvm_strip_iojs_prefix \
+        nvm_is_iojs_version nvm_is_iojs_rc_version nvm_is_alias \
+        nvm_ls_remote nvm_ls_remote_iojs nvm_ls_remote_iojs_rc nvm_ls_remote_index_tab \
         nvm_ls nvm_remote_version nvm_remote_versions \
         nvm_install_binary \
         nvm_get_mirror nvm_get_download_slug nvm_download_artifact \

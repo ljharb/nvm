@@ -6,10 +6,19 @@ die () { echo $@ ; exit 1; }
 
 OUTPUT="$(nvm_version_path foo)"
 EXPECTED_OUTPUT="$NVM_DIR/foo"
-[ "$OUTPUT" = "$EXPECTED_OUTPUT" ] || die "'nvm_version_path foo' did not return correct location; expected '$EXPECTED_OUTPUT', got '$OUTPUT'"
+[ "${OUTPUT}" = "${EXPECTED_OUTPUT}" ] || die "'nvm_version_path foo' did not return correct location; expected '${EXPECTED_OUTPUT}', got '${OUTPUT}'"
 
-[ "$(nvm_version_path 2>&1)" = "version is required" ] || die '"nvm_version_path" did not error out'
-[ "$(nvm_version_path v0.11.0)" = "$NVM_DIR/v0.11.0" ] || die 'old version has the wrong path'
-[ "$(nvm_version_path v0.12.0)" = "$NVM_DIR/versions/node/v0.12.0" ] || die 'new version has the wrong path'
-[ "$(nvm_version_path iojs-v0.12.0)" = "$NVM_DIR/versions/io.js/v0.12.0" ] || die 'iojs version has the wrong path'
+set +x
+OUTPUT="$(nvm_version_path 2>&1)" ||:
+set -x
+[ "${OUTPUT}" = 'version is required' ] || die '"nvm_version_path" did not error out'
+
+OUTPUT="$(nvm_version_path v0.11.0)"
+[ "${OUTPUT}" = "${NVM_DIR}/v0.11.0" ] || die "old version has the wrong path; got >${OUTPUT}<"
+
+OUTPUT="$(nvm_version_path v0.12.0)"
+[ "${OUTPUT}" = "${NVM_DIR}/versions/node/v0.12.0" ] || die "new version has the wrong path; got >${OUTPUT}<"
+
+[ "$(nvm_version_path iojs-v0.12.0)" = "${NVM_DIR}/versions/io.js/v0.12.0" ] || die 'iojs version has the wrong path'
+[ "$(nvm_version_path iojs:rc-v1.2.3)" = "${NVM_DIR}/versions/release_candidates/io.js/v1.2.3" ] || die 'iojs rc version has the wrong path'
 

@@ -1,10 +1,10 @@
 #!/bin/sh
 
-set -ex
-
 die () { echo $@ ; exit 1; }
 
 . ../../../nvm.sh
+
+set -ex
 
 nvm install --lts || die 'nvm install --lts failed'
 

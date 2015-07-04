@@ -1,14 +1,14 @@
 #!/bin/sh
 
-set -ex
-
 die () { echo $@ ; cleanup ; exit 1; }
 
 cleanup() {
-  unset -f nvm_download nvm_ls_remote nvm_ls_remote_iojs
+  unset -f nvm_download nvm_ls_remote nvm_ls_remote_iojs nvm_ls_remote_iojs_rc
 }
 
 . ../../../nvm.sh
+
+set -ex
 
 nvm deactivate 2>/dev/null || die 'unable to deactivate'
 
@@ -21,6 +21,10 @@ nvm_ls_remote() {
 REMOTE_IOJS="$PWD/mocks/nvm_ls_remote_iojs.txt"
 nvm_ls_remote_iojs() {
   cat "$REMOTE_IOJS"
+}
+REMOTE_IOJS_RC="$PWD/mocks/nvm_ls_remote_iojs_rc.txt"
+nvm_ls_remote_iojs_rc() {
+  cat "$REMOTE_IOJS_RC"
 }
 
 EXPECTED_OUTPUT_PATH="$PWD/mocks/nvm ls-remote.txt"

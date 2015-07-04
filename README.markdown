@@ -233,6 +233,15 @@ nvm use system
 nvm run system --version
 ```
 
+### Release Candidates
+If you want to install io.js release candidates and display them in `nvm ls-remote` (WARNING: experimental!):
+
+```sh
+export NVM_ENABLE_RELEASE_CANDIDATES=true
+nvm ls-remote iojs:rc
+nvm install iojs:rc
+```
+
 ### Listing versions
 If you want to see what versions are installed:
 

@@ -1,0 +1,5 @@
+iojs:rc-v3.0.0-rc.3
+iojs:rc-v3.0.0-rc.4
+iojs:rc-v3.0.0-rc.5
+iojs:rc-v3.0.0-rc.6
+iojs:rc-v3.0.0-rc.7

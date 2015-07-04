@@ -31,3 +31,7 @@ UNSTABLE="$(nvm_resolve_alias unstable)"
 
 IOJS="$(nvm_resolve_alias iojs)"
 [ "_$IOJS" = "_iojs-v0.2" ] || die "'nvm_resolve_alias iojs' was not iojs-v0.2; got $IOJS"
+
+IOJS_RC="$(nvm_resolve_alias "$(nvm_iojs_rc_prefix)")"
+EXPECTED_IOJS_RC="$(nvm_iojs_rc_prefix)-v0.3"
+[ "${IOJS_RC}" = "${EXPECTED_IOJS_RC}" ] || die "'nvm_resolve_alias $(nvm_iojs_rc_prefix)' was not ${EXPECTED_IOJS_RC}; got ${IOJS_RC}"
