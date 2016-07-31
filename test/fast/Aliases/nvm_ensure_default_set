@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -ex
+
 \. ../../common.sh
 
 die () { echo "$@" ; exit 1; }

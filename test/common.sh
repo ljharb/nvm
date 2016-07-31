@@ -1,12 +1,14 @@
 assert_ok() {
-  local FUNCTION=$1
+  [ -n "${KSH_VERSION-}" ] || local FUNCTION
+  FUNCTION=$1
   shift
 
   $($FUNCTION $@) || die '"'"$FUNCTION $@"'" should have succeeded, but failed'
 }
 
 assert_not_ok() {
-  local FUNCTION=$1
+  [ -n "${KSH_VERSION-}" ] || local FUNCTION
+  FUNCTION=$1
   shift
 
   ! $($FUNCTION $@) || die '"'"$FUNCTION $@"'" should have failed, but succeeded'
@@ -25,11 +27,11 @@ make_echo() {
 }
 
 make_fake_node() {
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="${1-}"
   [ -n "${VERSION}" ] || return 1
 
-  local BIN_PATH
+  [ -n "${KSH_VERSION-}" ] || local BIN_PATH
   BIN_PATH="$(nvm_version_path "${VERSION}")/bin"
   mkdir -p "${BIN_PATH}" || {
     echo >&2 'unable to make bin dir'
@@ -43,11 +45,11 @@ make_fake_node() {
 }
 
 make_fake_iojs() {
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="${1-}"
   [ -n "${VERSION}" ] || return 1
 
-  local BIN_PATH
+  [ -n "${KSH_VERSION-}" ] || local BIN_PATH
   BIN_PATH="$(nvm_version_path "iojs-${VERSION}")/bin"
   mkdir -p "${BIN_PATH}" || {
     echo >&2 'unable to make bin dir'
@@ -66,11 +68,11 @@ make_fake_iojs() {
 
 watch() {
   $@ &
-  local JOB
+  [ -n "${KSH_VERSION-}" ] || local JOB
   JOB=$!
   while true; do sleep 15; >&2 echo '* ping *'; done &
   wait $JOB;
-  local EXIT_CODE
+  [ -n "${KSH_VERSION-}" ] || local EXIT_CODE
   EXIT_CODE=$?
   kill %2;
   return $EXIT_CODE

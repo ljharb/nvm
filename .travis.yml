@@ -7,7 +7,7 @@ addons:
       - cabal-install
       - ghc
       - zsh
-    #  - ksh
+      - ksh
     #  - gcc-4.8
     #  - g++-4.8
 
@@ -49,17 +49,17 @@ env:
     - SHELL=dash TEST_SUITE=fast
     - SHELL=bash TEST_SUITE=fast
     - SHELL=zsh TEST_SUITE=fast
-  #  - SHELL=ksh TEST_SUITE=fast
+    - SHELL=ksh TEST_SUITE=fast
     - SHELL=sh TEST_SUITE=sourcing
     - SHELL=dash TEST_SUITE=sourcing
     - SHELL=bash TEST_SUITE=sourcing
     - SHELL=zsh TEST_SUITE=sourcing
-  #  - SHELL=ksh TEST_SUITE=sourcing
+    - SHELL=ksh TEST_SUITE=sourcing
     - SHELL=sh TEST_SUITE=slow
     - SHELL=dash TEST_SUITE=slow
     - SHELL=bash TEST_SUITE=slow
     - SHELL=zsh TEST_SUITE=slow
-  #  - SHELL=ksh TEST_SUITE=slow
+    - SHELL=ksh TEST_SUITE=slow
     - SHELL=sh TEST_SUITE=installation_node
     - SHELL=sh TEST_SUITE=installation_node WITHOUT_CURL=1
     - SHELL=dash TEST_SUITE=installation_node
@@ -68,8 +68,8 @@ env:
     - SHELL=bash TEST_SUITE=installation_node WITHOUT_CURL=1
     - SHELL=zsh TEST_SUITE=installation_node
     - SHELL=zsh TEST_SUITE=installation_node WITHOUT_CURL=1
-  #  - SHELL=ksh TEST_SUITE=installation_node
-  #  - SHELL=ksh TEST_SUITE=installation_node WITHOUT_CURL=1
+    - SHELL=ksh TEST_SUITE=installation_node
+    - SHELL=ksh TEST_SUITE=installation_node WITHOUT_CURL=1
     - SHELL=sh TEST_SUITE=installation_iojs
     - SHELL=sh TEST_SUITE=installation_iojs WITHOUT_CURL=1
     - SHELL=dash TEST_SUITE=installation_iojs
@@ -78,5 +78,5 @@ env:
     - SHELL=bash TEST_SUITE=installation_iojs WITHOUT_CURL=1
     - SHELL=zsh TEST_SUITE=installation_iojs
     - SHELL=zsh TEST_SUITE=installation_iojs WITHOUT_CURL=1
-  #  - SHELL=ksh TEST_SUITE=installation_iojs
-  #  - SHELL=ksh TEST_SUITE=installation_iojs WITHOUT_CURL=1
+    - SHELL=ksh TEST_SUITE=installation_iojs
+    - SHELL=ksh TEST_SUITE=installation_iojs WITHOUT_CURL=1

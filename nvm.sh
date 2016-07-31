@@ -50,8 +50,8 @@ nvm_is_alias() {
 }
 
 nvm_command_info() {
-  local COMMAND
-  local INFO
+  [ -n "${KSH_VERSION-}" ] || local COMMAND
+  [ -n "${KSH_VERSION-}" ] || local INFO
   COMMAND="${1}"
   if type "${COMMAND}" | command grep -q hashed; then
     INFO="$(type "${COMMAND}" | command sed -E 's/\(|)//g' | command awk '{print $4}')"
@@ -68,7 +68,7 @@ nvm_command_info() {
 }
 
 nvm_has_colors() {
-  local NVM_COLORS
+  [ -n "${KSH_VERSION-}" ] || local NVM_COLORS
   if nvm_has tput; then
     NVM_COLORS="$(tput -T "${TERM:-vt100}" colors)"
   fi
@@ -80,8 +80,8 @@ nvm_curl_libz_support() {
 }
 
 nvm_get_latest() {
-  local NVM_LATEST_URL
-  local CURL_COMPRESSED_FLAG
+  [ -n "${KSH_VERSION-}" ] || local NVM_LATEST_URL
+  [ -n "${KSH_VERSION-}" ] || local CURL_COMPRESSED_FLAG
   if nvm_has "curl"; then
     if nvm_curl_libz_support; then
       CURL_COMPRESSED_FLAG="--compressed"
@@ -101,7 +101,7 @@ nvm_get_latest() {
 }
 
 nvm_download() {
-  local CURL_COMPRESSED_FLAG
+  [ -n "${KSH_VERSION-}" ] || local CURL_COMPRESSED_FLAG
   if nvm_has "curl"; then
     if nvm_curl_libz_support; then
       CURL_COMPRESSED_FLAG="--compressed"
@@ -163,9 +163,9 @@ fi
 unset NVM_SCRIPT_SOURCE 2> /dev/null
 
 nvm_tree_contains_path() {
-  local tree
+  [ -n "${KSH_VERSION-}" ] || local tree
   tree="${1-}"
-  local node_path
+  [ -n "${KSH_VERSION-}" ] || local node_path
   node_path="${2-}"
 
   if [ "@${tree}@" = "@@" ] || [ "@${node_path}@" = "@@" ]; then
@@ -173,7 +173,7 @@ nvm_tree_contains_path() {
     return 2
   fi
 
-  local pathdir
+  [ -n "${KSH_VERSION-}" ] || local pathdir
   pathdir=$(dirname "${node_path}")
   while [ "${pathdir}" != "" ] && [ "${pathdir}" != "." ] && [ "${pathdir}" != "/" ] && [ "${pathdir}" != "${tree}" ]; do
     pathdir=$(dirname "${pathdir}")
@@ -183,7 +183,7 @@ nvm_tree_contains_path() {
 
 # Traverse up in directory tree to find containing folder
 nvm_find_up() {
-  local path
+  [ -n "${KSH_VERSION-}" ] || local path
   path="${PWD}"
   while [ "${path}" != "" ] && [ ! -f "${path}/${1-}" ]; do
     path=${path%/*}
@@ -193,7 +193,7 @@ nvm_find_up() {
 
 
 nvm_find_nvmrc() {
-  local dir
+  [ -n "${KSH_VERSION-}" ] || local dir
   dir="$(nvm_find_up '.nvmrc')"
   if [ -e "${dir}/.nvmrc" ]; then
     nvm_echo "${dir}/.nvmrc"
@@ -203,7 +203,7 @@ nvm_find_nvmrc() {
 # Obtain nvm version from rc file
 nvm_rc_version() {
   export NVM_RC_VERSION=''
-  local NVMRC_PATH
+  [ -n "${KSH_VERSION-}" ] || local NVMRC_PATH
   NVMRC_PATH="$(nvm_find_nvmrc)"
   if [ ! -e "${NVMRC_PATH}" ]; then
     nvm_err "No .nvmrc file found"
@@ -251,7 +251,7 @@ nvm_version_greater_than_or_equal_to() {
 }
 
 nvm_version_dir() {
-  local NVM_WHICH_DIR
+  [ -n "${KSH_VERSION-}" ] || local NVM_WHICH_DIR
   NVM_WHICH_DIR="${1-}"
   if [ -z "${NVM_WHICH_DIR}" ] || [ "${NVM_WHICH_DIR}" = "new" ]; then
     nvm_echo "${NVM_DIR}/versions/node"
@@ -270,7 +270,7 @@ nvm_alias_path() {
 }
 
 nvm_version_path() {
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="${1-}"
   if [ -z "${VERSION}" ]; then
     nvm_err 'version is required'
@@ -285,7 +285,7 @@ nvm_version_path() {
 }
 
 nvm_ensure_version_installed() {
-  local PROVIDED_VERSION
+  [ -n "${KSH_VERSION-}" ] || local PROVIDED_VERSION
   PROVIDED_VERSION="${1-}"
   if [ "${PROVIDED_VERSION}" = 'system' ]; then
     if nvm_has_system_iojs || nvm_has_system_node; then
@@ -294,16 +294,16 @@ nvm_ensure_version_installed() {
     nvm_err "N/A: no system version of node/io.js is installed."
     return 1
   fi
-  local LOCAL_VERSION
-  local EXIT_CODE
+  [ -n "${KSH_VERSION-}" ] || local LOCAL_VERSION
+  [ -n "${KSH_VERSION-}" ] || local EXIT_CODE
   LOCAL_VERSION="$(nvm_version "${PROVIDED_VERSION}")"
   EXIT_CODE="$?"
-  local NVM_VERSION_DIR
+  [ -n "${KSH_VERSION-}" ] || local NVM_VERSION_DIR
   if [ "${EXIT_CODE}" != "0" ] || ! nvm_is_version_installed "${LOCAL_VERSION}"; then
     if VERSION="$(nvm_resolve_alias "${PROVIDED_VERSION}")"; then
       nvm_err "N/A: version \"${PROVIDED_VERSION} -> ${VERSION}\" is not yet installed."
     else
-      local PREFIXED_VERSION
+      [ -n "${KSH_VERSION-}" ] || local PREFIXED_VERSION
       PREFIXED_VERSION="$(nvm_ensure_version_prefix "${PROVIDED_VERSION}")"
       nvm_err "N/A: version \"${PREFIXED_VERSION:-$PROVIDED_VERSION}\" is not yet installed."
     fi
@@ -315,9 +315,9 @@ nvm_ensure_version_installed() {
 
 # Expand a version using the version cache
 nvm_version() {
-  local PATTERN
+  [ -n "${KSH_VERSION-}" ] || local PATTERN
   PATTERN="${1-}"
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   # The default version is the current one
   if [ -z "${PATTERN}" ]; then
     PATTERN='current'
@@ -328,7 +328,7 @@ nvm_version() {
     return $?
   fi
 
-  local NVM_NODE_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_NODE_PREFIX
   NVM_NODE_PREFIX="$(nvm_node_prefix)"
   case "_${PATTERN}" in
     "_${NVM_NODE_PREFIX}" | "_${NVM_NODE_PREFIX}-")
@@ -344,9 +344,9 @@ nvm_version() {
 }
 
 nvm_remote_version() {
-  local PATTERN
+  [ -n "${KSH_VERSION-}" ] || local PATTERN
   PATTERN="${1-}"
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   if nvm_validate_implicit_alias "${PATTERN}" 2> /dev/null ; then
     case "${PATTERN}" in
       "$(nvm_iojs_prefix)")
@@ -373,15 +373,15 @@ nvm_remote_version() {
 }
 
 nvm_remote_versions() {
-  local NVM_IOJS_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_IOJS_PREFIX
   NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
-  local NVM_NODE_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_NODE_PREFIX
   NVM_NODE_PREFIX="$(nvm_node_prefix)"
 
-  local PATTERN
+  [ -n "${KSH_VERSION-}" ] || local PATTERN
   PATTERN="${1-}"
 
-  local NVM_FLAVOR
+  [ -n "${KSH_VERSION-}" ] || local NVM_FLAVOR
   if [ -n "${NVM_LTS-}" ]; then
     NVM_FLAVOR="${NVM_NODE_PREFIX}"
   fi
@@ -402,14 +402,14 @@ nvm_remote_versions() {
     return 1
   fi
 
-  local NVM_LS_REMOTE_EXIT_CODE
+  [ -n "${KSH_VERSION-}" ] || local NVM_LS_REMOTE_EXIT_CODE
   NVM_LS_REMOTE_EXIT_CODE=0
-  local NVM_LS_REMOTE_PRE_MERGED_OUTPUT
+  [ -n "${KSH_VERSION-}" ] || local NVM_LS_REMOTE_PRE_MERGED_OUTPUT
   NVM_LS_REMOTE_PRE_MERGED_OUTPUT=''
-  local NVM_LS_REMOTE_POST_MERGED_OUTPUT
+  [ -n "${KSH_VERSION-}" ] || local NVM_LS_REMOTE_POST_MERGED_OUTPUT
   NVM_LS_REMOTE_POST_MERGED_OUTPUT=''
   if [ -z "${NVM_FLAVOR-}" ] || [ "${NVM_FLAVOR-}" = "${NVM_NODE_PREFIX}" ]; then
-    local NVM_LS_REMOTE_OUTPUT
+    [ -n "${KSH_VERSION-}" ] || local NVM_LS_REMOTE_OUTPUT
     NVM_LS_REMOTE_OUTPUT=$(NVM_LTS="${NVM_LTS-}" nvm_ls_remote "${PATTERN-}") &&:
     NVM_LS_REMOTE_EXIT_CODE=$?
     # split output into two
@@ -417,9 +417,9 @@ nvm_remote_versions() {
     NVM_LS_REMOTE_POST_MERGED_OUTPUT="${NVM_LS_REMOTE_OUTPUT#$NVM_LS_REMOTE_PRE_MERGED_OUTPUT}"
   fi
 
-  local NVM_LS_REMOTE_IOJS_EXIT_CODE
+  [ -n "${KSH_VERSION-}" ] || local NVM_LS_REMOTE_IOJS_EXIT_CODE
   NVM_LS_REMOTE_IOJS_EXIT_CODE=0
-  local NVM_LS_REMOTE_IOJS_OUTPUT
+  [ -n "${KSH_VERSION-}" ] || local NVM_LS_REMOTE_IOJS_OUTPUT
   if [ -z "${NVM_LTS-}" ] && ( \
     [ -z "${NVM_FLAVOR-}" ] || [ "${NVM_FLAVOR-}" = "${NVM_IOJS_PREFIX}" ] \
   ); then
@@ -449,7 +449,7 @@ nvm_is_valid_version() {
       return 0
     ;;
     *)
-      local VERSION
+      [ -n "${KSH_VERSION-}" ] || local VERSION
       VERSION="$(nvm_strip_iojs_prefix "${1-}")"
       nvm_version_greater_than_or_equal_to "${VERSION}" 0
     ;;
@@ -465,7 +465,7 @@ nvm_normalize_version() {
 }
 
 nvm_ensure_version_prefix() {
-  local NVM_VERSION
+  [ -n "${KSH_VERSION-}" ] || local NVM_VERSION
   NVM_VERSION="$(nvm_strip_iojs_prefix "${1-}" | command sed -e 's/^\([0-9]\)/v\1/g')"
   if nvm_is_iojs_version "${1-}"; then
     nvm_add_iojs_prefix "${NVM_VERSION}"
@@ -475,9 +475,9 @@ nvm_ensure_version_prefix() {
 }
 
 nvm_format_version() {
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="$(nvm_ensure_version_prefix "${1-}")"
-  local NUM_GROUPS
+  [ -n "${KSH_VERSION-}" ] || local NUM_GROUPS
   NUM_GROUPS="$(nvm_num_version_groups "${VERSION}")"
   if [ "${NUM_GROUPS}" -lt 3 ]; then
     nvm_format_version "${VERSION%.}.0"
@@ -487,7 +487,7 @@ nvm_format_version() {
 }
 
 nvm_num_version_groups() {
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="${1-}"
   VERSION="${VERSION#v}"
   VERSION="${VERSION%.}"
@@ -495,9 +495,9 @@ nvm_num_version_groups() {
     nvm_echo "0"
     return
   fi
-  local NVM_NUM_DOTS
+  [ -n "${KSH_VERSION-}" ] || local NVM_NUM_DOTS
   NVM_NUM_DOTS=$(nvm_echo "${VERSION}" | command sed -e 's/[^\.]//g')
-  local NVM_NUM_GROUPS
+  [ -n "${KSH_VERSION-}" ] || local NVM_NUM_GROUPS
   NVM_NUM_GROUPS=".${NVM_NUM_DOTS}" # add extra dot, since it's (n - 1) dots at this point
   nvm_echo "${#NVM_NUM_GROUPS}"
 }
@@ -530,27 +530,27 @@ nvm_binary_available() {
 }
 
 nvm_print_formatted_alias() {
-  local ALIAS
+  [ -n "${KSH_VERSION-}" ] || local ALIAS
   ALIAS="${1-}"
-  local DEST
+  [ -n "${KSH_VERSION-}" ] || local DEST
   DEST="${2-}"
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="${3-}"
   if [ -z "${VERSION}" ]; then
     VERSION="$(nvm_version "${DEST}")" ||:
   fi
-  local VERSION_FORMAT
-  local ALIAS_FORMAT
-  local DEST_FORMAT
+  [ -n "${KSH_VERSION-}" ] || local VERSION_FORMAT
+  [ -n "${KSH_VERSION-}" ] || local ALIAS_FORMAT
+  [ -n "${KSH_VERSION-}" ] || local DEST_FORMAT
   ALIAS_FORMAT='%s'
   DEST_FORMAT='%s'
   VERSION_FORMAT='%s'
-  local NEWLINE
+  [ -n "${KSH_VERSION-}" ] || local NEWLINE
   NEWLINE="\n"
   if [ "_${DEFAULT}" = '_true' ]; then
     NEWLINE=" (default)\n"
   fi
-  local ARROW
+  [ -n "${KSH_VERSION-}" ] || local ARROW
   ARROW='->'
   if [ -z "${NVM_NO_COLORS}" ] && nvm_has_colors; then
     ARROW='\033[0;90m->\033[0m'
@@ -587,21 +587,21 @@ nvm_print_formatted_alias() {
 }
 
 nvm_print_alias_path() {
-  local NVM_ALIAS_DIR
+  [ -n "${KSH_VERSION-}" ] || local NVM_ALIAS_DIR
   NVM_ALIAS_DIR="${1-}"
   if [ -z "${NVM_ALIAS_DIR}" ]; then
     nvm_err 'An alias dir is required.'
     return 1
   fi
-  local ALIAS_PATH
+  [ -n "${KSH_VERSION-}" ] || local ALIAS_PATH
   ALIAS_PATH="${2-}"
   if [ -z "${ALIAS_PATH}" ]; then
     nvm_err 'An alias path is required.'
     return 2
   fi
-  local ALIAS
+  [ -n "${KSH_VERSION-}" ] || local ALIAS
   ALIAS="${ALIAS_PATH##${NVM_ALIAS_DIR}\/}"
-  local DEST
+  [ -n "${KSH_VERSION-}" ] || local DEST
   DEST="$(nvm_alias "${ALIAS}" 2> /dev/null)" ||:
   if [ -n "${DEST}" ]; then
     NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_LTS="${NVM_LTS-}" DEFAULT=false nvm_print_formatted_alias "${ALIAS}" "${DEST}"
@@ -609,13 +609,13 @@ nvm_print_alias_path() {
 }
 
 nvm_print_default_alias() {
-  local ALIAS
+  [ -n "${KSH_VERSION-}" ] || local ALIAS
   ALIAS="${1-}"
   if [ -z "${ALIAS}" ]; then
     nvm_err 'A default alias is required.'
     return 1
   fi
-  local DEST
+  [ -n "${KSH_VERSION-}" ] || local DEST
   DEST="$(nvm_print_implicit_alias local "${ALIAS}")"
   if [ -n "${DEST}" ]; then
     NVM_NO_COLORS="${NVM_NO_COLORS-}" DEFAULT=true nvm_print_formatted_alias "${ALIAS}" "${DEST}"
@@ -623,13 +623,13 @@ nvm_print_default_alias() {
 }
 
 nvm_make_alias() {
-  local ALIAS
+  [ -n "${KSH_VERSION-}" ] || local ALIAS
   ALIAS="${1-}"
   if [ -z "${ALIAS}" ]; then
     nvm_err "an alias name is required"
     return 1
   fi
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="${2-}"
   if [ -z "${VERSION}" ]; then
     nvm_err "an alias target version is required"
@@ -639,28 +639,28 @@ nvm_make_alias() {
 }
 
 nvm_list_aliases() {
-  local ALIAS
+  [ -n "${KSH_VERSION-}" ] || local ALIAS
   ALIAS="${1-}"
 
-  local NVM_CURRENT
+  [ -n "${KSH_VERSION-}" ] || local NVM_CURRENT
   NVM_CURRENT="$(nvm_ls_current)"
-  local NVM_ALIAS_DIR
+  [ -n "${KSH_VERSION-}" ] || local NVM_ALIAS_DIR
   NVM_ALIAS_DIR="$(nvm_alias_path)"
   command mkdir -p "${NVM_ALIAS_DIR}/lts"
 
-  local ALIAS_PATH
+  [ -n "${KSH_VERSION-}" ] || local ALIAS_PATH
   for ALIAS_PATH in "${NVM_ALIAS_DIR}/${ALIAS}"*; do
     NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}"
   done
 
-  local ALIAS_NAME
+  [ -n "${KSH_VERSION-}" ] || local ALIAS_NAME
   for ALIAS_NAME in "$(nvm_node_prefix)" "stable" "unstable" "$(nvm_iojs_prefix)"; do
     if [ ! -f "${NVM_ALIAS_DIR}/${ALIAS_NAME}" ] && ([ -z "${ALIAS}" ] || [ "${ALIAS_NAME}" = "${ALIAS}" ]); then
       NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_default_alias "${ALIAS_NAME}"
     fi
   done
 
-  local LTS_ALIAS
+  [ -n "${KSH_VERSION-}" ] || local LTS_ALIAS
   for ALIAS_PATH in "${NVM_ALIAS_DIR}/lts/${ALIAS}"*; do
     LTS_ALIAS="$(NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_LTS=true nvm_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}")"
     if [ -n "${LTS_ALIAS}" ]; then
@@ -671,14 +671,14 @@ nvm_list_aliases() {
 }
 
 nvm_alias() {
-  local ALIAS
+  [ -n "${KSH_VERSION-}" ] || local ALIAS
   ALIAS="${1-}"
   if [ -z "${ALIAS}" ]; then
     nvm_err 'An alias is required.'
     return 1
   fi
 
-  local NVM_ALIAS_PATH
+  [ -n "${KSH_VERSION-}" ] || local NVM_ALIAS_PATH
   NVM_ALIAS_PATH="$(nvm_alias_path)/${ALIAS}"
   if [ ! -f "${NVM_ALIAS_PATH}" ]; then
     nvm_err 'Alias does not exist.'
@@ -689,13 +689,13 @@ nvm_alias() {
 }
 
 nvm_ls_current() {
-  local NVM_LS_CURRENT_NODE_PATH
+  [ -n "${KSH_VERSION-}" ] || local NVM_LS_CURRENT_NODE_PATH
   if ! NVM_LS_CURRENT_NODE_PATH="$(command which node 2> /dev/null)"; then
     nvm_echo 'none'
   elif nvm_tree_contains_path "$(nvm_version_dir iojs)" "${NVM_LS_CURRENT_NODE_PATH}"; then
     nvm_add_iojs_prefix "$(iojs --version 2>/dev/null)"
   elif nvm_tree_contains_path "${NVM_DIR}" "${NVM_LS_CURRENT_NODE_PATH}"; then
-    local VERSION
+    [ -n "${KSH_VERSION-}" ] || local VERSION
     VERSION="$(node --version 2>/dev/null)"
     if [ "${VERSION}" = "v0.6.21-pre" ]; then
       nvm_echo 'v0.6.21'
@@ -712,14 +712,14 @@ nvm_resolve_alias() {
     return 1
   fi
 
-  local PATTERN
+  [ -n "${KSH_VERSION-}" ] || local PATTERN
   PATTERN="${1-}"
 
-  local ALIAS
+  [ -n "${KSH_VERSION-}" ] || local ALIAS
   ALIAS="${PATTERN}"
-  local ALIAS_TEMP
+  [ -n "${KSH_VERSION-}" ] || local ALIAS_TEMP
 
-  local SEEN_ALIASES
+  [ -n "${KSH_VERSION-}" ] || local SEEN_ALIASES
   SEEN_ALIASES="${ALIAS}"
   while true; do
     ALIAS_TEMP="$(nvm_alias "${ALIAS}" 2> /dev/null || echo)"
@@ -738,9 +738,9 @@ nvm_resolve_alias() {
   done
 
   if [ -n "${ALIAS}" ] && [ "_${ALIAS}" != "_${PATTERN}" ]; then
-    local NVM_IOJS_PREFIX
+    [ -n "${KSH_VERSION-}" ] || local NVM_IOJS_PREFIX
     NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
-    local NVM_NODE_PREFIX
+    [ -n "${KSH_VERSION-}" ] || local NVM_NODE_PREFIX
     NVM_NODE_PREFIX="$(nvm_node_prefix)"
     case "${ALIAS}" in
       '∞' | \
@@ -756,7 +756,7 @@ nvm_resolve_alias() {
   fi
 
   if nvm_validate_implicit_alias "${PATTERN}" 2> /dev/null ; then
-    local IMPLICIT
+    [ -n "${KSH_VERSION-}" ] || local IMPLICIT
     IMPLICIT="$(nvm_print_implicit_alias local "${PATTERN}" 2> /dev/null)"
     if [ -n "${IMPLICIT}" ]; then
       nvm_ensure_version_prefix "${IMPLICIT}"
@@ -771,8 +771,8 @@ nvm_resolve_local_alias() {
     return 1
   fi
 
-  local VERSION
-  local EXIT_CODE
+  [ -n "${KSH_VERSION-}" ] || local VERSION
+  [ -n "${KSH_VERSION-}" ] || local EXIT_CODE
   VERSION="$(nvm_resolve_alias "${1-}")"
   EXIT_CODE=$?
   if [ -z "${VERSION}" ]; then
@@ -802,7 +802,7 @@ nvm_add_iojs_prefix() {
 }
 
 nvm_strip_iojs_prefix() {
-  local NVM_IOJS_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_IOJS_PREFIX
   NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
   if [ "${1-}" = "${NVM_IOJS_PREFIX}" ]; then
     nvm_echo
@@ -812,24 +812,24 @@ nvm_strip_iojs_prefix() {
 }
 
 nvm_ls() {
-  local PATTERN
+  [ -n "${KSH_VERSION-}" ] || local PATTERN
   PATTERN="${1-}"
-  local VERSIONS
+  [ -n "${KSH_VERSION-}" ] || local VERSIONS
   VERSIONS=''
   if [ "${PATTERN}" = 'current' ]; then
     nvm_ls_current
     return
   fi
 
-  local NVM_IOJS_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_IOJS_PREFIX
   NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
-  local NVM_NODE_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_NODE_PREFIX
   NVM_NODE_PREFIX="$(nvm_node_prefix)"
-  local NVM_VERSION_DIR_IOJS
+  [ -n "${KSH_VERSION-}" ] || local NVM_VERSION_DIR_IOJS
   NVM_VERSION_DIR_IOJS="$(nvm_version_dir "${NVM_IOJS_PREFIX}")"
-  local NVM_VERSION_DIR_NEW
+  [ -n "${KSH_VERSION-}" ] || local NVM_VERSION_DIR_NEW
   NVM_VERSION_DIR_NEW="$(nvm_version_dir new)"
-  local NVM_VERSION_DIR_OLD
+  [ -n "${KSH_VERSION-}" ] || local NVM_VERSION_DIR_OLD
   NVM_VERSION_DIR_OLD="$(nvm_version_dir old)"
 
   case "${PATTERN}" in
@@ -847,7 +847,7 @@ nvm_ls() {
     return
   fi
   # If it looks like an explicit version, don't do anything funny
-  local NVM_PATTERN_STARTS_WITH_V
+  [ -n "${KSH_VERSION-}" ] || local NVM_PATTERN_STARTS_WITH_V
   case $PATTERN in
     v*) NVM_PATTERN_STARTS_WITH_V=true ;;
     *) NVM_PATTERN_STARTS_WITH_V=false ;;
@@ -862,7 +862,7 @@ nvm_ls() {
     case "${PATTERN}" in
       "${NVM_IOJS_PREFIX}-" | "${NVM_NODE_PREFIX}-" | "system") ;;
       *)
-        local NUM_VERSION_GROUPS
+        [ -n "${KSH_VERSION-}" ] || local NUM_VERSION_GROUPS
         NUM_VERSION_GROUPS="$(nvm_num_version_groups "${PATTERN}")"
         if [ "${NUM_VERSION_GROUPS}" = "2" ] || [ "${NUM_VERSION_GROUPS}" = "1" ]; then
           PATTERN="${PATTERN%.}."
@@ -870,20 +870,20 @@ nvm_ls() {
       ;;
     esac
 
-    local ZSH_HAS_SHWORDSPLIT_UNSET
+    [ -n "${KSH_VERSION-}" ] || local ZSH_HAS_SHWORDSPLIT_UNSET
     ZSH_HAS_SHWORDSPLIT_UNSET=1
     if nvm_has "setopt"; then
       ZSH_HAS_SHWORDSPLIT_UNSET="$(set +e ; setopt | nvm_grep shwordsplit > /dev/null ; nvm_echo $?)"
       setopt shwordsplit
     fi
 
-    local NVM_DIRS_TO_SEARCH1
+    [ -n "${KSH_VERSION-}" ] || local NVM_DIRS_TO_SEARCH1
     NVM_DIRS_TO_SEARCH1=''
-    local NVM_DIRS_TO_SEARCH2
+    [ -n "${KSH_VERSION-}" ] || local NVM_DIRS_TO_SEARCH2
     NVM_DIRS_TO_SEARCH2=''
-    local NVM_DIRS_TO_SEARCH3
+    [ -n "${KSH_VERSION-}" ] || local NVM_DIRS_TO_SEARCH3
     NVM_DIRS_TO_SEARCH3=''
-    local NVM_ADD_SYSTEM
+    [ -n "${KSH_VERSION-}" ] || local NVM_ADD_SYSTEM
     NVM_ADD_SYSTEM=false
     if nvm_is_iojs_version "${PATTERN}"; then
       NVM_DIRS_TO_SEARCH1="${NVM_VERSION_DIR_IOJS}"
@@ -917,7 +917,7 @@ nvm_ls() {
       NVM_DIRS_TO_SEARCH3="${NVM_DIRS_TO_SEARCH2}"
     fi
 
-    local SEARCH_PATTERN
+    [ -n "${KSH_VERSION-}" ] || local SEARCH_PATTERN
     if [ -z "${PATTERN}" ]; then
       PATTERN='v'
       SEARCH_PATTERN='.*'
@@ -966,7 +966,7 @@ nvm_ls() {
 }
 
 nvm_ls_remote() {
-  local PATTERN
+  [ -n "${KSH_VERSION-}" ] || local PATTERN
   PATTERN="${1-}"
   if nvm_validate_implicit_alias "${PATTERN}" 2> /dev/null ; then
     PATTERN="$(NVM_LTS="${NVM_LTS-}" nvm_ls_remote "$(nvm_print_implicit_alias remote "${PATTERN}")" | command tail -1 | command awk '{ print $1 }')"
@@ -984,26 +984,26 @@ nvm_ls_remote_iojs() {
 
 # args flavor, type, version
 nvm_ls_remote_index_tab() {
-  local LTS
+  [ -n "${KSH_VERSION-}" ] || local LTS
   LTS="${NVM_LTS-}"
   if [ "$#" -lt 3 ]; then
     nvm_err 'not enough arguments'
     return 5
   fi
 
-  local FLAVOR
+  [ -n "${KSH_VERSION-}" ] || local FLAVOR
   FLAVOR="${1-}"
 
-  local TYPE
+  [ -n "${KSH_VERSION-}" ] || local TYPE
   TYPE="${2-}"
 
-  local MIRROR
+  [ -n "${KSH_VERSION-}" ] || local MIRROR
   MIRROR="$(nvm_get_mirror "${FLAVOR}" "${TYPE}")"
   if [ -z "${MIRROR}" ]; then
     return 3
   fi
 
-  local PREFIX
+  [ -n "${KSH_VERSION-}" ] || local PREFIX
   PREFIX=''
   case "${FLAVOR}-${TYPE}" in
     iojs-std) PREFIX="$(nvm_iojs_prefix)-" ;;
@@ -1017,16 +1017,16 @@ nvm_ls_remote_index_tab() {
       return 4
     ;;
   esac
-  local SORT_COMMAND
+  [ -n "${KSH_VERSION-}" ] || local SORT_COMMAND
   SORT_COMMAND='command sort'
   case "${FLAVOR}" in
     node) SORT_COMMAND='command sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n' ;;
   esac
 
-  local PATTERN
+  [ -n "${KSH_VERSION-}" ] || local PATTERN
   PATTERN="${3-}"
 
-  local VERSIONS
+  [ -n "${KSH_VERSION-}" ] || local VERSIONS
   if [ -n "${PATTERN}" ]; then
     if [ "${FLAVOR}" = 'iojs' ]; then
       PATTERN="$(nvm_ensure_version_prefix "$(nvm_strip_iojs_prefix "${PATTERN}")")"
@@ -1042,15 +1042,15 @@ nvm_ls_remote_index_tab() {
     ZSH_HAS_SHWORDSPLIT_UNSET="$(set +e ; setopt | nvm_grep shwordsplit > /dev/null ; nvm_echo $?)"
     setopt shwordsplit
   fi
-  local VERSION_LIST
+  [ -n "${KSH_VERSION-}" ] || local VERSION_LIST
   VERSION_LIST="$(nvm_download -L -s "${MIRROR}/index.tab" -o - \
     | command sed "
         1d;
         s/^/${PREFIX}/;
       " \
   )"
-  local LTS_ALIAS
-  local LTS_VERSION
+  [ -n "${KSH_VERSION-}" ] || local LTS_ALIAS
+  [ -n "${KSH_VERSION-}" ] || local LTS_VERSION
   command mkdir -p "$(nvm_alias_path)/lts"
   nvm_echo "${VERSION_LIST}" \
     | command awk '{
@@ -1121,7 +1121,7 @@ nvm_get_checksum_alg() {
 }
 
 nvm_compute_checksum() {
-  local FILE
+  [ -n "${KSH_VERSION-}" ] || local FILE
   FILE="${1-}"
   if [ -z "${FILE}" ]; then
     nvm_err 'Provided file to checksum is empty.'
@@ -1162,7 +1162,7 @@ nvm_compute_checksum() {
 }
 
 nvm_compare_checksum() {
-  local FILE
+  [ -n "${KSH_VERSION-}" ] || local FILE
   FILE="${1-}"
   if [ -z "${FILE}" ]; then
     nvm_err 'Provided file to checksum is empty.'
@@ -1172,10 +1172,10 @@ nvm_compare_checksum() {
     return 3
   fi
 
-  local COMPUTED_SUM
+  [ -n "${KSH_VERSION-}" ] || local COMPUTED_SUM
   COMPUTED_SUM="$(nvm_compute_checksum "${FILE}")"
 
-  local CHECKSUM
+  [ -n "${KSH_VERSION-}" ] || local CHECKSUM
   CHECKSUM="${2-}"
   if [ -z "${CHECKSUM}" ]; then
     nvm_err 'Provided checksum to compare to is empty.'
@@ -1195,7 +1195,7 @@ nvm_compare_checksum() {
 
 # args: flavor, type, version, slug, compression
 nvm_get_checksum() {
-  local FLAVOR
+  [ -n "${KSH_VERSION-}" ] || local FLAVOR
   case "${1-}" in
     node | iojs) FLAVOR="${1}" ;;
     *)
@@ -1204,13 +1204,13 @@ nvm_get_checksum() {
     ;;
   esac
 
-  local MIRROR
+  [ -n "${KSH_VERSION-}" ] || local MIRROR
   MIRROR="$(nvm_get_mirror "${FLAVOR}" "${2-}")"
   if [ -z "${MIRROR}" ]; then
     return 1
   fi
 
-  local SHASUMS_URL
+  [ -n "${KSH_VERSION-}" ] || local SHASUMS_URL
   if [ "$(nvm_get_checksum_alg)" = 'sha-256' ]; then
     SHASUMS_URL="${MIRROR}/${3}/SHASUMS256.txt"
   else
@@ -1221,7 +1221,7 @@ nvm_get_checksum() {
 }
 
 nvm_checksum() {
-  local NVM_CHECKSUM
+  [ -n "${KSH_VERSION-}" ] || local NVM_CHECKSUM
   if [ -z "${3-}" ] || [ "${3-}" = 'sha1' ]; then
     if nvm_has_non_aliased "sha1sum"; then
       NVM_CHECKSUM="$(command sha1sum "${1-}" | command awk '{print $1}')"
@@ -1264,17 +1264,17 @@ nvm_checksum() {
 }
 
 nvm_print_versions() {
-  local VERSION
-  local LTS
-  local FORMAT
-  local NVM_CURRENT
+  [ -n "${KSH_VERSION-}" ] || local VERSION
+  [ -n "${KSH_VERSION-}" ] || local LTS
+  [ -n "${KSH_VERSION-}" ] || local FORMAT
+  [ -n "${KSH_VERSION-}" ] || local NVM_CURRENT
   NVM_CURRENT=$(nvm_ls_current)
-  local NVM_HAS_COLORS
+  [ -n "${KSH_VERSION-}" ] || local NVM_HAS_COLORS
   if [ -z "${NVM_NO_COLORS-}" ] && nvm_has_colors; then
     NVM_HAS_COLORS=1
   fi
-  local LTS_LENGTH
-  local LTS_FORMAT
+  [ -n "${KSH_VERSION-}" ] || local LTS_LENGTH
+  [ -n "${KSH_VERSION-}" ] || local LTS_FORMAT
   nvm_echo "${1-}" \
   | command sed '1!G;h;$!d' \
   | command awk '{ if ($2 && a[$2]++) { print $1, "(LTS: " $2 ")" } else if ($2) { print $1, "(Latest LTS: " $2 ")" } else { print $0 } }' \
@@ -1328,9 +1328,9 @@ nvm_print_versions() {
 }
 
 nvm_validate_implicit_alias() {
-  local NVM_IOJS_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_IOJS_PREFIX
   NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
-  local NVM_NODE_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_NODE_PREFIX
   NVM_NODE_PREFIX="$(nvm_node_prefix)"
 
   case "$1" in
@@ -1350,21 +1350,21 @@ nvm_print_implicit_alias() {
     return 1
   fi
 
-  local NVM_IMPLICIT
+  [ -n "${KSH_VERSION-}" ] || local NVM_IMPLICIT
   NVM_IMPLICIT="$2"
   if ! nvm_validate_implicit_alias "$NVM_IMPLICIT"; then
     return 2
   fi
 
-  local ZSH_HAS_SHWORDSPLIT_UNSET
+  [ -n "${KSH_VERSION-}" ] || local ZSH_HAS_SHWORDSPLIT_UNSET
 
-  local NVM_IOJS_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_IOJS_PREFIX
   NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
-  local NVM_NODE_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_NODE_PREFIX
   NVM_NODE_PREFIX="$(nvm_node_prefix)"
-  local NVM_COMMAND
-  local NVM_ADD_PREFIX_COMMAND
-  local LAST_TWO
+  [ -n "${KSH_VERSION-}" ] || local NVM_COMMAND
+  [ -n "${KSH_VERSION-}" ] || local NVM_ADD_PREFIX_COMMAND
+  [ -n "${KSH_VERSION-}" ] || local LAST_TWO
   case "$NVM_IMPLICIT" in
     "$NVM_IOJS_PREFIX")
       NVM_COMMAND="nvm_ls_remote_iojs"
@@ -1379,8 +1379,8 @@ nvm_print_implicit_alias() {
         setopt shwordsplit
       fi
 
-      local NVM_IOJS_VERSION
-      local EXIT_CODE
+      [ -n "${KSH_VERSION-}" ] || local NVM_IOJS_VERSION
+      [ -n "${KSH_VERSION-}" ] || local EXIT_CODE
       NVM_IOJS_VERSION="$($NVM_COMMAND)" &&:
       EXIT_CODE="$?"
       if [ "_$EXIT_CODE" = "_0" ]; then
@@ -1421,11 +1421,11 @@ nvm_print_implicit_alias() {
       fi
     ;;
   esac
-  local MINOR
-  local STABLE
-  local UNSTABLE
-  local MOD
-  local NORMALIZED_VERSION
+  [ -n "${KSH_VERSION-}" ] || local MINOR
+  [ -n "${KSH_VERSION-}" ] || local STABLE
+  [ -n "${KSH_VERSION-}" ] || local UNSTABLE
+  [ -n "${KSH_VERSION-}" ] || local MOD
+  [ -n "${KSH_VERSION-}" ] || local NORMALIZED_VERSION
 
   ZSH_HAS_SHWORDSPLIT_UNSET=1
   if nvm_has "setopt"; then
@@ -1457,9 +1457,9 @@ nvm_print_implicit_alias() {
 }
 
 nvm_get_os() {
-  local NVM_UNAME
+  [ -n "${KSH_VERSION-}" ] || local NVM_UNAME
   NVM_UNAME="$(command uname -a)"
-  local NVM_OS
+  [ -n "${KSH_VERSION-}" ] || local NVM_OS
   case "$NVM_UNAME" in
     Linux\ *) NVM_OS=linux ;;
     Darwin\ *) NVM_OS=darwin ;;
@@ -1471,9 +1471,9 @@ nvm_get_os() {
 }
 
 nvm_get_arch() {
-  local HOST_ARCH
-  local NVM_OS
-  local EXIT_CODE
+  [ -n "${KSH_VERSION-}" ] || local HOST_ARCH
+  [ -n "${KSH_VERSION-}" ] || local NVM_OS
+  [ -n "${KSH_VERSION-}" ] || local EXIT_CODE
 
   NVM_OS="$(nvm_get_os)"
   # If the OS is SunOS, first try to use pkgsrc to guess
@@ -1492,7 +1492,7 @@ nvm_get_arch() {
      HOST_ARCH="$(command uname -m)"
   fi
 
-  local NVM_ARCH
+  [ -n "${KSH_VERSION-}" ] || local NVM_ARCH
   case "$HOST_ARCH" in
     x86_64 | amd64) NVM_ARCH="x64" ;;
     i*86) NVM_ARCH="x86" ;;
@@ -1503,7 +1503,7 @@ nvm_get_arch() {
 }
 
 nvm_get_minor_version() {
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="$1"
 
   if [ -z "$VERSION" ]; then
@@ -1518,10 +1518,10 @@ nvm_get_minor_version() {
     ;;
   esac
 
-  local PREFIXED_VERSION
+  [ -n "${KSH_VERSION-}" ] || local PREFIXED_VERSION
   PREFIXED_VERSION="$(nvm_format_version "$VERSION")"
 
-  local MINOR
+  [ -n "${KSH_VERSION-}" ] || local MINOR
   MINOR="$(nvm_echo "$PREFIXED_VERSION" | nvm_grep -e '^v' | command cut -c2- | command cut -d . -f 1,2)"
   if [ -z "$MINOR" ]; then
     nvm_err 'invalid version number! (please report this)'
@@ -1531,7 +1531,7 @@ nvm_get_minor_version() {
 }
 
 nvm_ensure_default_set() {
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="$1"
   if [ -z "$VERSION" ]; then
     nvm_err 'nvm_ensure_default_set: a version is required'
@@ -1540,9 +1540,9 @@ nvm_ensure_default_set() {
     # default already set
     return 0
   fi
-  local OUTPUT
+  [ -n "${KSH_VERSION-}" ] || local OUTPUT
   OUTPUT="$(nvm alias default "$VERSION")"
-  local EXIT_CODE
+  [ -n "${KSH_VERSION-}" ] || local EXIT_CODE
   EXIT_CODE="$?"
   nvm_echo "Creating default alias: $OUTPUT"
   return $EXIT_CODE
@@ -1565,7 +1565,7 @@ nvm_get_mirror() {
 
 # args: flavor, type, version, reinstall
 nvm_install_binary() {
-  local FLAVOR
+  [ -n "${KSH_VERSION-}" ] || local FLAVOR
   case "${1-}" in
     node | iojs) FLAVOR="${1}" ;;
     *)
@@ -1574,34 +1574,34 @@ nvm_install_binary() {
     ;;
   esac
 
-  local TYPE
+  [ -n "${KSH_VERSION-}" ] || local TYPE
   TYPE="${2-}"
 
-  local PREFIXED_VERSION
+  [ -n "${KSH_VERSION-}" ] || local PREFIXED_VERSION
   PREFIXED_VERSION="${3-}"
   if [ -z "${PREFIXED_VERSION}" ]; then
     nvm_err 'A version number is required.'
     return 3
   fi
 
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="$(nvm_strip_iojs_prefix "${PREFIXED_VERSION}")"
 
   if [ -z "$(nvm_get_os)" ]; then
     return 2
   fi
 
-  local tar_compression_flag
+  [ -n "${KSH_VERSION-}" ] || local tar_compression_flag
   tar_compression_flag='z'
   if nvm_supports_xz "${VERSION}"; then
     tar_compression_flag='J'
   fi
 
-  local TARBALL
-  local TMPDIR
-  local VERSION_PATH
+  [ -n "${KSH_VERSION-}" ] || local TARBALL
+  [ -n "${KSH_VERSION-}" ] || local TMPDIR
+  [ -n "${KSH_VERSION-}" ] || local VERSION_PATH
 
-  local NODE_OR_IOJS
+  [ -n "${KSH_VERSION-}" ] || local NODE_OR_IOJS
   if [ "${FLAVOR}" = 'node' ]; then
     NODE_OR_IOJS="${FLAVOR}"
   fi
@@ -1610,7 +1610,7 @@ nvm_install_binary() {
   if [ -f "${TARBALL}" ]; then
     TMPDIR="$(dirname "${TARBALL}")/files"
   fi
-  local tar
+  [ -n "${KSH_VERSION-}" ] || local tar
   tar='tar'
   if [ "${NVM_OS}" = 'aix' ]; then
     tar='gtar'
@@ -1636,7 +1636,7 @@ nvm_install_binary() {
 
 # args: flavor, kind, version
 nvm_get_download_slug() {
-  local FLAVOR
+  [ -n "${KSH_VERSION-}" ] || local FLAVOR
   case "${1-}" in
     node | iojs) FLAVOR="${1}" ;;
     *)
@@ -1645,7 +1645,7 @@ nvm_get_download_slug() {
     ;;
   esac
 
-  local KIND
+  [ -n "${KSH_VERSION-}" ] || local KIND
   case "${2-}" in
     binary | source) KIND="${2}" ;;
     *)
@@ -1654,13 +1654,13 @@ nvm_get_download_slug() {
     ;;
   esac
 
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="${3-}"
 
-  local NVM_OS
+  [ -n "${KSH_VERSION-}" ] || local NVM_OS
   NVM_OS="$(nvm_get_os)"
 
-  local NVM_ARCH
+  [ -n "${KSH_VERSION-}" ] || local NVM_ARCH
   NVM_ARCH="$(nvm_get_arch)"
   if ! nvm_is_merged_node_version "${VERSION}"; then
     if [ "${NVM_ARCH}" = 'armv6l' ] || [ "${NVM_ARCH}" = 'armv7l' ]; then
@@ -1677,7 +1677,7 @@ nvm_get_download_slug() {
 
 # args: flavor, kind, type, version
 nvm_download_artifact() {
-  local FLAVOR
+  [ -n "${KSH_VERSION-}" ] || local FLAVOR
   case "${1-}" in
     node | iojs) FLAVOR="${1}" ;;
     *)
@@ -1686,7 +1686,7 @@ nvm_download_artifact() {
     ;;
   esac
 
-  local KIND
+  [ -n "${KSH_VERSION-}" ] || local KIND
   case "${2-}" in
     binary | source) KIND="${2}" ;;
     *)
@@ -1695,16 +1695,16 @@ nvm_download_artifact() {
     ;;
   esac
 
-  local TYPE
+  [ -n "${KSH_VERSION-}" ] || local TYPE
   TYPE="${3-}"
 
-  local MIRROR
+  [ -n "${KSH_VERSION-}" ] || local MIRROR
   MIRROR="$(nvm_get_mirror "${FLAVOR}" "${TYPE}")"
   if [ -z "${MIRROR}" ]; then
     return 2
   fi
 
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="${4}"
 
   if [ -z "${VERSION}" ]; then
@@ -1717,19 +1717,19 @@ nvm_download_artifact() {
     return
   fi
 
-  local SLUG
+  [ -n "${KSH_VERSION-}" ] || local SLUG
   SLUG="$(nvm_get_download_slug "${FLAVOR}" "${KIND}" "${VERSION}")"
 
-  local COMPRESSION
+  [ -n "${KSH_VERSION-}" ] || local COMPRESSION
   COMPRESSION='gz'
   if nvm_supports_xz "${VERSION}"; then
     COMPRESSION='xz'
   fi
 
-  local CHECKSUM
+  [ -n "${KSH_VERSION-}" ] || local CHECKSUM
   CHECKSUM="$(nvm_get_checksum "${FLAVOR}" "${TYPE}" "${VERSION}" "${SLUG}" "${COMPRESSION}")"
 
-  local tmpdir
+  [ -n "${KSH_VERSION-}" ] || local tmpdir
   if [ "${KIND}" = 'binary' ]; then
     tmpdir="$(nvm_cache_dir)/bin/${SLUG}"
   else
@@ -1740,9 +1740,9 @@ nvm_download_artifact() {
     return 3
   )
 
-  local TARBALL
+  [ -n "${KSH_VERSION-}" ] || local TARBALL
   TARBALL="${tmpdir}/${SLUG}.tar.${COMPRESSION}"
-  local TARBALL_URL
+  [ -n "${KSH_VERSION-}" ] || local TARBALL_URL
   if nvm_version_greater_than_or_equal_to "${VERSION}" 0.1.14; then
     TARBALL_URL="${MIRROR}/${VERSION}/${SLUG}.tar.${COMPRESSION}"
   else
@@ -1792,9 +1792,9 @@ nvm_get_make_jobs() {
     unset NVM_MAKE_JOBS
     nvm_err "$1 is invalid for number of \`make\` jobs, must be a natural number"
   fi
-  local NVM_OS
+  [ -n "${KSH_VERSION-}" ] || local NVM_OS
   NVM_OS="$(nvm_get_os)"
-  local NVM_CPU_CORES
+  [ -n "${KSH_VERSION-}" ] || local NVM_CPU_CORES
   case "_$NVM_OS" in
     "_linux")
       NVM_CPU_CORES="$(nvm_grep -c -E '^processor.+: [0-9]+' /proc/cpuinfo)"
@@ -1827,7 +1827,7 @@ nvm_get_make_jobs() {
 
 # args: flavor, type, version, make jobs, additional
 nvm_install_source() {
-  local FLAVOR
+  [ -n "${KSH_VERSION-}" ] || local FLAVOR
   case "${1-}" in
     node | iojs) FLAVOR="${1}" ;;
     *)
@@ -1836,26 +1836,26 @@ nvm_install_source() {
     ;;
   esac
 
-  local TYPE
+  [ -n "${KSH_VERSION-}" ] || local TYPE
   TYPE="${2-}"
 
-  local PREFIXED_VERSION
+  [ -n "${KSH_VERSION-}" ] || local PREFIXED_VERSION
   PREFIXED_VERSION="${3-}"
   if [ -z "${PREFIXED_VERSION}" ]; then
     nvm_err 'A version number is required.'
     return 3
   fi
 
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="$(nvm_strip_iojs_prefix "${PREFIXED_VERSION}")"
 
-  local NVM_MAKE_JOBS
+  [ -n "${KSH_VERSION-}" ] || local NVM_MAKE_JOBS
   NVM_MAKE_JOBS="${4-}"
 
-  local ADDITIONAL_PARAMETERS
+  [ -n "${KSH_VERSION-}" ] || local ADDITIONAL_PARAMETERS
   ADDITIONAL_PARAMETERS="${5-}"
 
-  local NVM_ARCH
+  [ -n "${KSH_VERSION-}" ] || local NVM_ARCH
   NVM_ARCH="$(nvm_get_arch)"
   if [ "${NVM_ARCH}" = 'armv6l' ] || [ "${NVM_ARCH}" = 'armv7l' ]; then
     if [ -n "${ADDITIONAL_PARAMETERS}" ]; then
@@ -1869,12 +1869,12 @@ nvm_install_source() {
     nvm_echo "Additional options while compiling: ${ADDITIONAL_PARAMETERS}"
   fi
 
-  local NVM_OS
+  [ -n "${KSH_VERSION-}" ] || local NVM_OS
   NVM_OS="$(nvm_get_os)"
 
-  local make
+  [ -n "${KSH_VERSION-}" ] || local make
   make='make'
-  local MAKE_CXX
+  [ -n "${KSH_VERSION-}" ] || local MAKE_CXX
   case "${NVM_OS}" in
     'freebsd')
       make='gmake'
@@ -1894,21 +1894,21 @@ nvm_install_source() {
     fi
   fi
 
-  local tar_compression_flag
+  [ -n "${KSH_VERSION-}" ] || local tar_compression_flag
   tar_compression_flag='z'
   if nvm_supports_xz "${VERSION}"; then
     tar_compression_flag='J'
   fi
 
-  local tar
+  [ -n "${KSH_VERSION-}" ] || local tar
   tar='tar'
   if [ "${NVM_OS}" = 'aix' ]; then
     tar='gtar'
   fi
 
-  local TARBALL
-  local TMPDIR
-  local VERSION_PATH
+  [ -n "${KSH_VERSION-}" ] || local TARBALL
+  [ -n "${KSH_VERSION-}" ] || local TMPDIR
+  [ -n "${KSH_VERSION-}" ] || local VERSION_PATH
 
   TARBALL="$(nvm_download_artifact "${FLAVOR}" source "${TYPE}" "${VERSION}" | command tail -1)" && \
   [ -f "${TARBALL}" ] && \
@@ -1939,7 +1939,7 @@ nvm_use_if_needed() {
 }
 
 nvm_install_npm_if_needed() {
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="$(nvm_ls_current)"
   if ! nvm_has "npm"; then
     nvm_echo 'Installing npm...'
@@ -1959,9 +1959,9 @@ nvm_install_npm_if_needed() {
 }
 
 nvm_match_version() {
-  local NVM_IOJS_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_IOJS_PREFIX
   NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
-  local PROVIDED_VERSION
+  [ -n "${KSH_VERSION-}" ] || local PROVIDED_VERSION
   PROVIDED_VERSION="$1"
   case "_$PROVIDED_VERSION" in
     "_$NVM_IOJS_PREFIX" | '_io.js')
@@ -1977,8 +1977,8 @@ nvm_match_version() {
 }
 
 nvm_npm_global_modules() {
-  local NPMLIST
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local NPMLIST
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   VERSION="$1"
   if [ "_$VERSION" = "_system" ]; then
     NPMLIST=$(nvm use system > /dev/null && npm list -g --depth=0 2> /dev/null | command sed 1,1d)
@@ -1986,17 +1986,17 @@ nvm_npm_global_modules() {
     NPMLIST=$(nvm use "$VERSION" > /dev/null && npm list -g --depth=0 2> /dev/null | command sed 1,1d)
   fi
 
-  local INSTALLS
+  [ -n "${KSH_VERSION-}" ] || local INSTALLS
   INSTALLS=$(nvm_echo "$NPMLIST" | command sed -e '/ -> / d' -e '/\(empty\)/ d' -e 's/^.* \(.*@[^ ]*\).*/\1/' -e '/^npm@[^ ]*.*$/ d' | command xargs)
 
-  local LINKS
+  [ -n "${KSH_VERSION-}" ] || local LINKS
   LINKS="$(nvm_echo "$NPMLIST" | command sed -n 's/.* -> \(.*\)/\1/ p')"
 
   nvm_echo "$INSTALLS //// $LINKS"
 }
 
 nvm_die_on_prefix() {
-  local NVM_DELETE_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_DELETE_PREFIX
   NVM_DELETE_PREFIX="$1"
   case "$NVM_DELETE_PREFIX" in
     0|1) ;;
@@ -2005,7 +2005,7 @@ nvm_die_on_prefix() {
       return 1
     ;;
   esac
-  local NVM_COMMAND
+  [ -n "${KSH_VERSION-}" ] || local NVM_COMMAND
   NVM_COMMAND="$2"
   if [ -z "$NVM_COMMAND" ]; then
     nvm_err 'Second argument "nvm command" must be nonempty'
@@ -2028,7 +2028,7 @@ nvm_die_on_prefix() {
     return
   fi
 
-  local NVM_NPM_PREFIX
+  [ -n "${KSH_VERSION-}" ] || local NVM_NPM_PREFIX
   NVM_NPM_PREFIX="$(npm config --loglevel=warn get prefix)"
   if ! (nvm_tree_contains_path "$NVM_DIR" "$NVM_NPM_PREFIX" >/dev/null 2>&1); then
     if [ "_$NVM_DELETE_PREFIX" = "_1" ]; then
@@ -2052,9 +2052,9 @@ nvm_die_on_prefix() {
 # latest io.js version available. The expectation is that any potential io.js
 # version later than v3.3.1 will also have Solaris binaries.
 iojs_version_has_solaris_binary() {
-  local IOJS_VERSION
+  [ -n "${KSH_VERSION-}" ] || local IOJS_VERSION
   IOJS_VERSION="$1"
-  local STRIPPED_IOJS_VERSION
+  [ -n "${KSH_VERSION-}" ] || local STRIPPED_IOJS_VERSION
   STRIPPED_IOJS_VERSION="$(nvm_strip_iojs_prefix "$IOJS_VERSION")"
   if [ "_$STRIPPED_IOJS_VERSION" = "$IOJS_VERSION" ]; then
     return 1
@@ -2069,10 +2069,10 @@ iojs_version_has_solaris_binary() {
 # Currently, node versions starting from v0.8.6 have a Solaris binary
 # avaliable.
 node_version_has_solaris_binary() {
-  local NODE_VERSION
+  [ -n "${KSH_VERSION-}" ] || local NODE_VERSION
   NODE_VERSION="$1"
   # Error out if $NODE_VERSION is actually an io.js version
-  local STRIPPED_IOJS_VERSION
+  [ -n "${KSH_VERSION-}" ] || local STRIPPED_IOJS_VERSION
   STRIPPED_IOJS_VERSION="$(nvm_strip_iojs_prefix "$NODE_VERSION")"
   if [ "_$STRIPPED_IOJS_VERSION" != "_$NODE_VERSION" ]; then
     return 1
@@ -2088,7 +2088,7 @@ node_version_has_solaris_binary() {
 # Succeeds if $VERSION represents a version (node, io.js or merged) that has a
 # Solaris binary, fails otherwise.
 nvm_has_solaris_binary() {
-  local VERSION=$1
+  [ -n "${KSH_VERSION-}" ] || local VERSION=$1
   if nvm_is_merged_node_version "$VERSION"; then
     return 0 # All merged node versions have a Solaris binary
   elif nvm_is_iojs_version "$VERSION"; then
@@ -2099,7 +2099,7 @@ nvm_has_solaris_binary() {
 }
 
 nvm_sanitize_path() {
-  local SANITIZED_PATH
+  [ -n "${KSH_VERSION-}" ] || local SANITIZED_PATH
   SANITIZED_PATH="${1-}"
   if [ "_$SANITIZED_PATH" != "_$NVM_DIR" ]; then
     SANITIZED_PATH="$(nvm_echo "$SANITIZED_PATH" | command sed -e "s#$NVM_DIR#\$NVM_DIR#g")"
@@ -2125,7 +2125,7 @@ nvm_is_natural_num() {
 
 # Check version dir permissions
 nvm_check_file_permissions() {
-  local ZSH_HAS_NONOMATCH_UNSET
+  [ -n "${KSH_VERSION-}" ] || local ZSH_HAS_NONOMATCH_UNSET
   ZSH_HAS_NONOMATCH_UNSET=1
   if nvm_has "setopt"; then
     ZSH_HAS_NONOMATCH_UNSET="$(set +e ; setopt | nvm_grep nonomatch > /dev/null ; nvm_echo $?)"
@@ -2163,7 +2163,7 @@ nvm() {
     return
   fi
 
-  local DEFAULT_IFS
+  [ -n "${KSH_VERSION-}" ] || local DEFAULT_IFS
   DEFAULT_IFS=" $(echo t | tr t \\t)
 "
   if [ "${IFS}" != "${DEFAULT_IFS}" ]; then
@@ -2171,19 +2171,19 @@ nvm() {
     return $?
   fi
 
-  local COMMAND
+  [ -n "${KSH_VERSION-}" ] || local COMMAND
   COMMAND="${1-}"
   shift
 
-  # initialize local variables
-  local VERSION
-  local ADDITIONAL_PARAMETERS
+  # initialize [ -n "${KSH_VERSION-}" ] || local variables
+  [ -n "${KSH_VERSION-}" ] || local VERSION
+  [ -n "${KSH_VERSION-}" ] || local ADDITIONAL_PARAMETERS
 
   case $COMMAND in
     'help' | '--help' )
-      local NVM_IOJS_PREFIX
+      [ -n "${KSH_VERSION-}" ] || local NVM_IOJS_PREFIX
       NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
-      local NVM_NODE_PREFIX
+      [ -n "${KSH_VERSION-}" ] || local NVM_NODE_PREFIX
       NVM_NODE_PREFIX="$(nvm_node_prefix)"
       nvm_echo
       nvm_echo "Node Version Manager"
@@ -2223,7 +2223,7 @@ nvm() {
       nvm_echo '  nvm ls-remote <version>                   List remote versions available for install, matching a given <version>'
       nvm_echo '    --lts                                   When listing, only show LTS (long-term support) versions'
       nvm_echo '    --lts=<LTS name>                        When listing, only show versions for a specific LTS line'
-      nvm_echo '  nvm version <version>                     Resolve the given description to a single local version'
+      nvm_echo '  nvm version <version>                     Resolve the given description to a single [ -n "${KSH_VERSION-}" ] || local version'
       nvm_echo '  nvm version-remote <version>              Resolve the given description to a single remote version'
       nvm_echo '    --lts                                   When listing, only select from LTS (long-term support) versions'
       nvm_echo '    --lts=<LTS name>                        When listing, only select from versions for a specific LTS line'
@@ -2253,7 +2253,7 @@ nvm() {
       case "${1-}" in
         dir) nvm_cache_dir ;;
         clear)
-          local DIR
+          [ -n "${KSH_VERSION-}" ] || local DIR
           DIR="$(nvm_cache_dir)"
           if command rm -rf "${DIR}" && command mkdir -p "${DIR}"; then
             nvm_echo 'Cache cleared.'
@@ -2270,7 +2270,7 @@ nvm() {
     ;;
 
     "debug" )
-      local ZSH_HAS_SHWORDSPLIT_UNSET
+      [ -n "${KSH_VERSION-}" ] || local ZSH_HAS_SHWORDSPLIT_UNSET
       ZSH_HAS_SHWORDSPLIT_UNSET=1
       if nvm_has "setopt"; then
         ZSH_HAS_SHWORDSPLIT_UNSET="$(set +e ; setopt | nvm_grep shwordsplit > /dev/null ; nvm_echo $?)"
@@ -2306,7 +2306,7 @@ nvm() {
       else
         nvm_err "git: not found"
       fi
-      local NVM_DEBUG_OUTPUT
+      [ -n "${KSH_VERSION-}" ] || local NVM_DEBUG_OUTPUT
       for NVM_DEBUG_COMMAND in 'nvm current' 'which node' 'which iojs' 'which npm' 'npm config get prefix' 'npm root -g'
       do
         NVM_DEBUG_OUTPUT="$($NVM_DEBUG_COMMAND 2>&1)"
@@ -2319,9 +2319,9 @@ nvm() {
     ;;
 
     "install" | "i" )
-      local version_not_provided
+      [ -n "${KSH_VERSION-}" ] || local version_not_provided
       version_not_provided=0
-      local NVM_OS
+      [ -n "${KSH_VERSION-}" ] || local NVM_OS
       NVM_OS="$(nvm_get_os)"
 
       if ! nvm_has "curl" && ! nvm_has "wget"; then
@@ -2333,9 +2333,9 @@ nvm() {
         version_not_provided=1
       fi
 
-      local nobinary
+      [ -n "${KSH_VERSION-}" ] || local nobinary
       nobinary=0
-      local LTS
+      [ -n "${KSH_VERSION-}" ] || local LTS
       while [ $# -ne 0 ]
       do
         case "$1" in
@@ -2362,7 +2362,7 @@ nvm() {
         esac
       done
 
-      local provided_version
+      [ -n "${KSH_VERSION-}" ] || local provided_version
       provided_version="${1-}"
 
       if [ -z "$provided_version" ]; then
@@ -2404,8 +2404,8 @@ nvm() {
       VERSION="$(NVM_VERSION_ONLY=true NVM_LTS="${LTS-}" nvm_remote_version "${provided_version}")"
 
       if [ "${VERSION}" = 'N/A' ]; then
-        local LTS_MSG
-        local REMOTE_CMD
+        [ -n "${KSH_VERSION-}" ] || local LTS_MSG
+        [ -n "${KSH_VERSION-}" ] || local REMOTE_CMD
         if [ "${LTS-}" = '*' ]; then
           LTS_MSG='(with LTS filter) '
           REMOTE_CMD='nvm ls-remote --lts'
@@ -2420,10 +2420,10 @@ nvm() {
       fi
 
       ADDITIONAL_PARAMETERS=''
-      local PROVIDED_REINSTALL_PACKAGES_FROM
-      local REINSTALL_PACKAGES_FROM
-      local SKIP_DEFAULT_PACKAGES
-      local DEFAULT_PACKAGES
+      [ -n "${KSH_VERSION-}" ] || local PROVIDED_REINSTALL_PACKAGES_FROM
+      [ -n "${KSH_VERSION-}" ] || local REINSTALL_PACKAGES_FROM
+      [ -n "${KSH_VERSION-}" ] || local SKIP_DEFAULT_PACKAGES
+      [ -n "${KSH_VERSION-}" ] || local DEFAULT_PACKAGES
 
       while [ $# -ne 0 ]
       do
@@ -2450,7 +2450,7 @@ nvm() {
         DEFAULT_PACKAGES=""
 
         # Read lines from $NVM_DIR/default-packages
-        local line
+        [ -n "${KSH_VERSION-}" ] || local line
         while IFS=" " read -r line; do
           # Skip empty lines.
           [ -n "${line}" ] || continue
@@ -2478,7 +2478,7 @@ nvm() {
         return 5
       fi
 
-      local FLAVOR
+      [ -n "${KSH_VERSION-}" ] || local FLAVOR
       if nvm_is_iojs_version "$VERSION"; then
         FLAVOR="$(nvm_iojs_prefix)"
       else
@@ -2503,16 +2503,16 @@ nvm() {
         return $?
       fi
 
-      local EXIT_CODE
+      [ -n "${KSH_VERSION-}" ] || local EXIT_CODE
       EXIT_CODE=-1
       if [ -n "${NVM_INSTALL_THIRD_PARTY_HOOK-}" ]; then
         nvm_err '** $NVM_INSTALL_THIRD_PARTY_HOOK env var set; dispatching to third-party installation method **'
-        local NVM_METHOD_PREFERENCE
+        [ -n "${KSH_VERSION-}" ] || local NVM_METHOD_PREFERENCE
         NVM_METHOD_PREFERENCE='binary'
         if [ $nobinary -eq 1 ]; then
           NVM_METHOD_PREFERENCE='source'
         fi
-        local VERSION_PATH
+        [ -n "${KSH_VERSION-}" ] || local VERSION_PATH
         VERSION_PATH="$(nvm_version_path "${VERSION}")"
         "${NVM_INSTALL_THIRD_PARTY_HOOK}" "${VERSION}" "${FLAVOR}" std "${NVM_METHOD_PREFERENCE}" "${VERSION_PATH}" || {
           EXIT_CODE=$?
@@ -2578,7 +2578,7 @@ nvm() {
         return 127
       fi
 
-      local PATTERN
+      [ -n "${KSH_VERSION-}" ] || local PATTERN
       PATTERN="${1-}"
       case "${PATTERN-}" in
         --) ;;
@@ -2610,8 +2610,8 @@ nvm() {
         return;
       fi
 
-      local SLUG_BINARY
-      local SLUG_SOURCE
+      [ -n "${KSH_VERSION-}" ] || local SLUG_BINARY
+      [ -n "${KSH_VERSION-}" ] || local SLUG_SOURCE
       if nvm_is_iojs_version "${VERSION}"; then
         SLUG_BINARY="$(nvm_get_download_slug iojs binary std "${VERSION}")"
         SLUG_SOURCE="$(nvm_get_download_slug iojs source std "${VERSION}")"
@@ -2620,14 +2620,14 @@ nvm() {
         SLUG_SOURCE="$(nvm_get_download_slug node source std "${VERSION}")"
       fi
 
-      local NVM_SUCCESS_MSG
+      [ -n "${KSH_VERSION-}" ] || local NVM_SUCCESS_MSG
       if nvm_is_iojs_version "${VERSION}"; then
         NVM_SUCCESS_MSG="Uninstalled io.js $(nvm_strip_iojs_prefix "${VERSION}")"
       else
         NVM_SUCCESS_MSG="Uninstalled node ${VERSION}"
       fi
 
-      local VERSION_PATH
+      [ -n "${KSH_VERSION-}" ] || local VERSION_PATH
       VERSION_PATH="$(nvm_version_path "${VERSION}")"
       if ! nvm_check_file_permissions "${VERSION_PATH}"; then
         nvm_err 'Cannot uninstall, incorrect permissions on installation folder.'
@@ -2639,7 +2639,7 @@ nvm() {
       fi
 
       # Delete all files related to target version.
-      local CACHE_DIR
+      [ -n "${KSH_VERSION-}" ] || local CACHE_DIR
       CACHE_DIR="$(nvm_cache_dir)"
       command rm -rf \
         "${CACHE_DIR}/bin/${SLUG_BINARY}/files" \
@@ -2654,7 +2654,7 @@ nvm() {
       done
     ;;
     "deactivate" )
-      local NEWPATH
+      [ -n "${KSH_VERSION-}" ] || local NEWPATH
       NEWPATH="$(nvm_strip_path "$PATH" "/bin")"
       if [ "_$PATH" = "_$NEWPATH" ]; then
         nvm_err "Could not find $NVM_DIR/*/bin in \$PATH"
@@ -2684,12 +2684,12 @@ nvm() {
       unset NVM_BIN
     ;;
     "use" )
-      local PROVIDED_VERSION
-      local NVM_USE_SILENT
+      [ -n "${KSH_VERSION-}" ] || local PROVIDED_VERSION
+      [ -n "${KSH_VERSION-}" ] || local NVM_USE_SILENT
       NVM_USE_SILENT=0
-      local NVM_DELETE_PREFIX
+      [ -n "${KSH_VERSION-}" ] || local NVM_DELETE_PREFIX
       NVM_DELETE_PREFIX=0
-      local NVM_LTS
+      [ -n "${KSH_VERSION-}" ] || local NVM_LTS
 
       while [ $# -ne 0 ]
       do
@@ -2759,7 +2759,7 @@ nvm() {
         return $?
       fi
 
-      local NVM_VERSION_DIR
+      [ -n "${KSH_VERSION-}" ] || local NVM_VERSION_DIR
       NVM_VERSION_DIR="$(nvm_version_path "$VERSION")"
 
       # Strip other version from PATH
@@ -2768,7 +2768,7 @@ nvm() {
       PATH="$(nvm_prepend_path "$PATH" "$NVM_VERSION_DIR/bin")"
       if nvm_has manpath; then
         if [ -z "${MANPATH-}" ]; then
-          local MANPATH
+          [ -n "${KSH_VERSION-}" ] || local MANPATH
           MANPATH=$(manpath)
         fi
         # Strip other version from MANPATH
@@ -2783,7 +2783,7 @@ nvm() {
       if [ "${NVM_SYMLINK_CURRENT-}" = true ]; then
         command rm -f "$NVM_DIR/current" && ln -s "$NVM_VERSION_DIR" "$NVM_DIR/current"
       fi
-      local NVM_USE_OUTPUT
+      [ -n "${KSH_VERSION-}" ] || local NVM_USE_OUTPUT
       if [ $NVM_USE_SILENT -ne 1 ]; then
         if nvm_is_iojs_version "$VERSION"; then
           NVM_USE_OUTPUT="Now using io.js $(nvm_strip_iojs_prefix "$VERSION")$(nvm_print_npm_version)"
@@ -2792,7 +2792,7 @@ nvm() {
         fi
       fi
       if [ "_$VERSION" != "_system" ]; then
-        local NVM_USE_CMD
+        [ -n "${KSH_VERSION-}" ] || local NVM_USE_CMD
         NVM_USE_CMD="nvm use --delete-prefix"
         if [ -n "$PROVIDED_VERSION" ]; then
           NVM_USE_CMD="$NVM_USE_CMD $VERSION"
@@ -2809,13 +2809,13 @@ nvm() {
       fi
     ;;
     "run" )
-      local provided_version
-      local has_checked_nvmrc
+      [ -n "${KSH_VERSION-}" ] || local provided_version
+      [ -n "${KSH_VERSION-}" ] || local has_checked_nvmrc
       has_checked_nvmrc=0
       # run given version of node
 
-      local NVM_SILENT
-      local NVM_LTS
+      [ -n "${KSH_VERSION-}" ] || local NVM_SILENT
+      [ -n "${KSH_VERSION-}" ] || local NVM_LTS
       while [ $# -gt 0 ]
       do
         case "$1" in
@@ -2869,20 +2869,20 @@ nvm() {
         fi
       fi
 
-      local NVM_IOJS
+      [ -n "${KSH_VERSION-}" ] || local NVM_IOJS
       if nvm_is_iojs_version "$VERSION"; then
         NVM_IOJS=true
       fi
 
-      local EXIT_CODE
+      [ -n "${KSH_VERSION-}" ] || local EXIT_CODE
 
-      local ZSH_HAS_SHWORDSPLIT_UNSET
+      [ -n "${KSH_VERSION-}" ] || local ZSH_HAS_SHWORDSPLIT_UNSET
       ZSH_HAS_SHWORDSPLIT_UNSET=1
       if nvm_has "setopt"; then
         ZSH_HAS_SHWORDSPLIT_UNSET="$(set +e ; setopt | nvm_grep shwordsplit > /dev/null ; nvm_echo $?)"
         setopt shwordsplit
       fi
-      local LTS_ARG
+      [ -n "${KSH_VERSION-}" ] || local LTS_ARG
       if [ -n "${NVM_LTS-}" ]; then
         LTS_ARG="--lts=${NVM_LTS-}"
         VERSION=''
@@ -2901,8 +2901,8 @@ nvm() {
       return $EXIT_CODE
     ;;
     "exec" )
-      local NVM_SILENT
-      local NVM_LTS
+      [ -n "${KSH_VERSION-}" ] || local NVM_SILENT
+      [ -n "${KSH_VERSION-}" ] || local NVM_LTS
       while [ $# -gt 0 ]
       do
         case "$1" in
@@ -2924,7 +2924,7 @@ nvm() {
         esac
       done
 
-      local provided_version
+      [ -n "${KSH_VERSION-}" ] || local provided_version
       provided_version="$1"
       if [ "${NVM_LTS-}" != '' ]; then
         provided_version="lts/${NVM_LTS:-*}"
@@ -2965,8 +2965,8 @@ nvm() {
       NODE_VERSION="$VERSION" "$NVM_DIR/nvm-exec" "$@"
     ;;
     "ls" | "list" )
-      local PATTERN
-      local NVM_NO_COLORS
+      [ -n "${KSH_VERSION-}" ] || local PATTERN
+      [ -n "${KSH_VERSION-}" ] || local NVM_NO_COLORS
       while [ $# -gt 0 ]
       do
         case "${1}" in
@@ -2982,8 +2982,8 @@ nvm() {
         esac
         shift
       done
-      local NVM_LS_OUTPUT
-      local NVM_LS_EXIT_CODE
+      [ -n "${KSH_VERSION-}" ] || local NVM_LS_OUTPUT
+      [ -n "${KSH_VERSION-}" ] || local NVM_LS_EXIT_CODE
       NVM_LS_OUTPUT=$(nvm_ls "${PATTERN-}")
       NVM_LS_EXIT_CODE=$?
       NVM_NO_COLORS="${NVM_NO_COLORS-}" nvm_print_versions "$NVM_LS_OUTPUT"
@@ -2997,9 +2997,9 @@ nvm() {
       return $NVM_LS_EXIT_CODE
     ;;
     "ls-remote" | "list-remote" )
-      local NVM_LTS
-      local PATTERN
-      local NVM_NO_COLORS
+      [ -n "${KSH_VERSION-}" ] || local NVM_LTS
+      [ -n "${KSH_VERSION-}" ] || local PATTERN
+      [ -n "${KSH_VERSION-}" ] || local NVM_NO_COLORS
       while [ $# -gt 0 ]
       do
         case "${1-}" in
@@ -3030,8 +3030,8 @@ nvm() {
         shift
       done
 
-      local NVM_OUTPUT
-      local EXIT_CODE
+      [ -n "${KSH_VERSION-}" ] || local NVM_OUTPUT
+      [ -n "${KSH_VERSION-}" ] || local EXIT_CODE
       NVM_OUTPUT="$(NVM_LTS="${NVM_LTS-}" nvm_remote_versions "${PATTERN}" &&:)"
       EXIT_CODE=$?
       if [ -n "$NVM_OUTPUT" ]; then
@@ -3045,7 +3045,7 @@ nvm() {
       nvm_version current
     ;;
     "which" )
-      local provided_version
+      [ -n "${KSH_VERSION-}" ] || local provided_version
       provided_version="${1-}"
       if [ $# -eq 0 ]; then
         nvm_rc_version
@@ -3066,7 +3066,7 @@ nvm() {
 
       if [ "_$VERSION" = '_system' ]; then
         if nvm_has_system_iojs >/dev/null 2>&1 || nvm_has_system_node >/dev/null 2>&1; then
-          local NVM_BIN
+          [ -n "${KSH_VERSION-}" ] || local NVM_BIN
           NVM_BIN="$(nvm use system >/dev/null 2>&1 && command which node)"
           if [ -n "$NVM_BIN" ]; then
             nvm_echo "$NVM_BIN"
@@ -3086,21 +3086,21 @@ nvm() {
       if [ "$EXIT_CODE" != "0" ]; then
         return $EXIT_CODE
       fi
-      local NVM_VERSION_DIR
+      [ -n "${KSH_VERSION-}" ] || local NVM_VERSION_DIR
       NVM_VERSION_DIR="$(nvm_version_path "$VERSION")"
       nvm_echo "$NVM_VERSION_DIR/bin/node"
     ;;
     "alias" )
-      local NVM_ALIAS_DIR
+      [ -n "${KSH_VERSION-}" ] || local NVM_ALIAS_DIR
       NVM_ALIAS_DIR="$(nvm_alias_path)"
-      local NVM_CURRENT
+      [ -n "${KSH_VERSION-}" ] || local NVM_CURRENT
       NVM_CURRENT="$(nvm_ls_current)"
 
       command mkdir -p "${NVM_ALIAS_DIR}/lts"
 
-      local ALIAS
-      local TARGET
-      local NVM_NO_COLORS
+      [ -n "${KSH_VERSION-}" ] || local ALIAS
+      [ -n "${KSH_VERSION-}" ] || local TARGET
+      [ -n "${KSH_VERSION-}" ] || local NVM_NO_COLORS
       ALIAS='--'
       TARGET='--'
       while [ $# -gt 0 ]
@@ -3149,7 +3149,7 @@ nvm() {
       fi
     ;;
     "unalias" )
-      local NVM_ALIAS_DIR
+      [ -n "${KSH_VERSION-}" ] || local NVM_ALIAS_DIR
       NVM_ALIAS_DIR="$(nvm_alias_path)"
       command mkdir -p "$NVM_ALIAS_DIR"
       if [ $# -ne 1 ]; then
@@ -3161,7 +3161,7 @@ nvm() {
         return 1
       fi
       [ ! -f "$NVM_ALIAS_DIR/${1-}" ] && nvm_err "Alias ${1-} doesn't exist!" && return
-      local NVM_ALIAS_ORIGINAL
+      [ -n "${KSH_VERSION-}" ] || local NVM_ALIAS_ORIGINAL
       NVM_ALIAS_ORIGINAL="$(nvm_alias "${1}")"
       command rm -f "$NVM_ALIAS_DIR/${1}"
       nvm_echo "Deleted alias ${1} - restore it with \`nvm alias \"${1}\" \"$NVM_ALIAS_ORIGINAL\"\`"
@@ -3172,7 +3172,7 @@ nvm() {
         return 127
       fi
 
-      local PROVIDED_VERSION
+      [ -n "${KSH_VERSION-}" ] || local PROVIDED_VERSION
       PROVIDED_VERSION="${1-}"
 
       if [ "$PROVIDED_VERSION" = "$(nvm_ls_current)" ] || [ "$(nvm_version "$PROVIDED_VERSION" ||:)" = "$(nvm_ls_current)" ]; then
@@ -3180,7 +3180,7 @@ nvm() {
         return 2
       fi
 
-      local VERSION
+      [ -n "${KSH_VERSION-}" ] || local VERSION
       if [ "_$PROVIDED_VERSION" = "_system" ]; then
         if ! nvm_has_system_node && ! nvm_has_system_iojs; then
           nvm_err 'No system version of node or io.js detected.'
@@ -3191,10 +3191,10 @@ nvm() {
         VERSION="$(nvm_version "$PROVIDED_VERSION")" ||:
       fi
 
-      local NPMLIST
+      [ -n "${KSH_VERSION-}" ] || local NPMLIST
       NPMLIST="$(nvm_npm_global_modules "$VERSION")"
-      local INSTALLS
-      local LINKS
+      [ -n "${KSH_VERSION-}" ] || local INSTALLS
+      [ -n "${KSH_VERSION-}" ] || local LINKS
       INSTALLS="${NPMLIST%% //// *}"
       LINKS="${NPMLIST##* //// }"
 
@@ -3221,8 +3221,8 @@ nvm() {
       nvm_version "${1}"
     ;;
     "version-remote" )
-      local NVM_LTS
-      local PATTERN
+      [ -n "${KSH_VERSION-}" ] || local NVM_LTS
+      [ -n "${KSH_VERSION-}" ] || local PATTERN
       while [ $# -gt 0 ]
       do
         case "${1-}" in
@@ -3343,7 +3343,7 @@ nvm_supports_xz() {
     return 0
   fi
 
-  local NVM_OS
+  [ -n "${KSH_VERSION-}" ] || local NVM_OS
   NVM_OS="$(nvm_get_os)"
   case "${NVM_OS}" in
     darwin)
@@ -3358,9 +3358,9 @@ nvm_supports_xz() {
 }
 
 nvm_auto() {
-  local NVM_MODE
+  [ -n "${KSH_VERSION-}" ] || local NVM_MODE
   NVM_MODE="${1-}"
-  local VERSION
+  [ -n "${KSH_VERSION-}" ] || local VERSION
   if [ "_$NVM_MODE" = '_install' ]; then
     VERSION="$(nvm_alias default 2>/dev/null || nvm_echo)"
     if [ -n "$VERSION" ]; then
@@ -3382,7 +3382,7 @@ nvm_auto() {
 }
 
 nvm_process_parameters() {
-  local NVM_AUTO_MODE
+  [ -n "${KSH_VERSION-}" ] || local NVM_AUTO_MODE
   NVM_AUTO_MODE='use'
   if nvm_supports_source_options; then
     while [ $# -ne 0 ]

@@ -34,12 +34,12 @@ OUTPUT="$(nvm_die_on_prefix 0 foo 2>&1)"
 nvm_has() { return 0; }
 
 npm() {
-  local args
-  args="$@"
+  args="$@" # this is needed as a separate var to avoid http://stackoverflow.com/questions/13781216/bash-meaning-of-too-many-arguments-error-from-if-square-brackets
   if [ "_$args" = "_config --loglevel=warn get prefix" ]; then
     echo "$(nvm_version_dir new)/good prefix"
   fi
 }
+
 OUTPUT="$(nvm_die_on_prefix 0 foo 2>&1)"
 [ -z "$OUTPUT" ] || die "'nvm_die_on_prefix' was not a noop when prefix is good; got '$OUTPUT'"
 
@@ -58,8 +58,7 @@ EXIT_CODE="$(NPM_CONFIG_PREFIX=bar nvm_die_on_prefix 0 foo >/dev/null 2>&1; echo
 [ "_$EXIT_CODE" = "_4" ] || die "'NPM_CONFIG_PREFIX=bar nvm_die_on_prefix 0 foo' did not exit with 4; got '$EXIT_CODE'"
 
 npm() {
-  local args
-  args="$@"
+  args="$@" # this is needed as a separate var to avoid http://stackoverflow.com/questions/13781216/bash-meaning-of-too-many-arguments-error-from-if-square-brackets
   if [ "_$args" = "_config --loglevel=warn get prefix" ]; then
     echo "./bad prefix"
   fi
