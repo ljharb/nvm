@@ -1,0 +1,14 @@
+#!/bin/sh
+
+die () { echo $@ ; exit 1; }
+
+. ../../../nvm.sh
+
+[ "_$(nvm_strip_prefixes iojs)" = "_" ] || die '"nvm_strip_prefixes iojs" did not return an empty string'
+[ "_$(nvm_strip_prefixes iojs-)" = "_" ] || die '"nvm_strip_prefixes iojs-" did not return an empty string'
+[ "_$(nvm_strip_prefixes iojs-foo)" = "_foo" ] || die '"nvm_strip_prefixes iojs-foo" did not return "foo"'
+[ "_$(nvm_strip_prefixes iojsfoo)" = "_iojsfoo" ] || die '"nvm_strip_prefixes iojsfoo" did not return "iojsfoo"'
+[ "_$(nvm_strip_prefixes iojs:rc)" = "_" ] || die '"nvm_strip_prefixes iojs:rc" did not return an empty string'
+[ "_$(nvm_strip_prefixes iojs:rc-)" = "_" ] || die '"nvm_strip_prefixes iojs:rc-" did not return an empty string'
+[ "_$(nvm_strip_prefixes iojs:rc-foo)" = "_foo" ] || die '"nvm_strip_prefixes iojs:rc-foo" did not return "foo"'
+[ "_$(nvm_strip_prefixes iojs:rcfoo)" = "_iojs:rcfoo" ] || die '"nvm_strip_prefixes iojs:rcfoo" did not return "iojs:rcfoo"'

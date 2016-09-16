@@ -11,5 +11,5 @@ die () { echo $@ ; exit 1; }
 [ "_$(nvm_ensure_version_prefix iojs-1)" = "_iojs-v1" ] || die '"nvm_ensure_version_prefix iojs-1" did not return "iojs-v1"'
 [ "_$(nvm_ensure_version_prefix iojs-v1)" = "_iojs-v1" ] || die '"nvm_ensure_version_prefix iojs-v1" did not return "iojs-v1"'
 
-[ "_$(nvm_ensure_version_prefix "$(nvm_iojs_rc_prefix)"-1)" = "_"$(nvm_iojs_rc_prefix)"-v1" ] || die '"nvm_ensure_version_prefix "$(nvm_iojs_rc_prefix)"-1" did not return ""$(nvm_iojs_rc_prefix)"-v1"'
-[ "_$(nvm_ensure_version_prefix "$(nvm_iojs_rc_prefix)"-v1)" = "_"$(nvm_iojs_rc_prefix)"-v1" ] || die '"nvm_ensure_version_prefix "$(nvm_iojs_rc_prefix)"-v1" did not return ""$(nvm_iojs_rc_prefix)"-v1"'
+[ "_$(nvm_ensure_version_prefix "$(nvm_prefix iojs rc)"-1)" = "_"$(nvm_prefix iojs rc)"-v1" ] || die '"nvm_ensure_version_prefix "$(nvm_prefix iojs rc)"-1" did not return ""$(nvm_prefix iojs rc)"-v1"'
+[ "_$(nvm_ensure_version_prefix "$(nvm_prefix iojs rc)"-v1)" = "_"$(nvm_prefix iojs rc)"-v1" ] || die '"nvm_ensure_version_prefix "$(nvm_prefix iojs rc)"-v1" did not return ""$(nvm_prefix iojs rc)"-v1"'

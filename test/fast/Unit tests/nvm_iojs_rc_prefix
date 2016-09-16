@@ -1,7 +1,0 @@
-#!/bin/sh
-
-die () { echo $@ ; exit 1; }
-
-. ../../../nvm.sh
-
-[ "$(nvm_iojs_rc_prefix)" = "iojs:rc" ] || die '"nvm_iojs_rc_prefix" did not return the string "iojs:rc". why did this fail?!'

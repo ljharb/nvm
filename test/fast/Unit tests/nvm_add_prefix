@@ -1,0 +1,13 @@
+#!/bin/sh
+
+die () { echo $@ ; exit 1; }
+
+. ../../../nvm.sh
+
+[ "_$(nvm_add_prefix iojs std 1)" = "_iojs-v1" ] || die '"nvm_add_prefix iojs 1" did not return "iojs-v1"'
+[ "_$(nvm_add_prefix iojs std iojs-1)" = "_iojs-v1" ] || die '"nvm_add_prefix iojs iojs-1" did not return "iojs-v1"'
+[ "_$(nvm_add_prefix iojs std iojs-1.2.3)" = "_iojs-v1.2.3" ] || die '"nvm_add_prefix ioj iojs-1.2.3" did not return "iojs-v1.2.3"'
+
+[ "_$(nvm_add_prefix iojs rc 1)" = "_iojs:rc-v1" ] || die '"nvm_add_prefix iojs rc 1" did not return "iojs:rc-v1"'
+[ "_$(nvm_add_prefix iojs rc iojs:rc-1)" = "_iojs:rc-v1" ] || die '"nvm_add_prefix iojs rc iojs:rc-1" did not return "iojs:rc-v1"'
+[ "_$(nvm_add_prefix iojs rc iojs:rc-1.2.3)" = "_iojs:rc-v1.2.3" ] || die '"nvm_add_prefix iojs rc iojs:rc-1.2.3" did not return "iojs:rc-v1.2.3"'

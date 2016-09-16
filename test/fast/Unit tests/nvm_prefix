@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -ex
+
+die () { echo $@ ; exit 1; }
+
+. ../../../nvm.sh
+
+[ "$(nvm_prefix node std)" = 'node' ] || die '"nvm_prefix node std" did not return the string "node". why did this fail?!'
+[ "$(nvm_prefix iojs std)" = 'iojs' ] || die '"nvm_prefix iojs std" did not return the string "iojs". why did this fail?!'
+[ "$(nvm_prefix iojs rc)" = "iojs:rc" ] || die '"nvm_prefix iojs rc" did not return the string "iojs:rc". why did this fail?!'
