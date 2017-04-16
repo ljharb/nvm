@@ -112,6 +112,7 @@ nvm_download() {
     ARGS=$(nvm_echo "$@" | command sed -e 's/--progress-bar /--progress=bar /' \
                            -e 's/--compressed //' \
                            -e 's/-L //' \
+                           -e 's/--fail //' \
                            -e 's/-I /--server-response /' \
                            -e 's/-s /-q /' \
                            -e 's/-o /-O /' \
@@ -1763,7 +1764,7 @@ nvm_download_artifact() {
     command rm -rf "${TARBALL}"
   fi
   nvm_err "Downloading ${TARBALL_URL}..."
-  nvm_download -L -C - --progress-bar "${TARBALL_URL}" -o "${TARBALL}" || (
+  nvm_download --fail -L -C - --progress-bar "${TARBALL_URL}" -o "${TARBALL}" || (
     command rm -rf "${TARBALL}" "${tmpdir}"
     nvm_err "Binary download from ${TARBALL_URL} failed, trying source."
     return 4
@@ -1949,10 +1950,10 @@ nvm_install_npm_if_needed() {
       if nvm_version_greater 0.2.3 "$VERSION"; then
         nvm_err 'npm requires node v0.2.3 or higher'
       else
-        nvm_download -L https://npmjs.org/install.sh -o - | clean=yes npm_install=0.2.19 sh
+        nvm_download --fail -L https://npmjs.org/install.sh -o - | clean=yes npm_install=0.2.19 sh
       fi
     else
-      nvm_download -L https://npmjs.org/install.sh -o - | clean=yes sh
+      nvm_download --fail -L https://npmjs.org/install.sh -o - | clean=yes sh
     fi
   fi
   return $?
