@@ -650,19 +650,19 @@ nvm_list_aliases() {
 
   [ -n "${KSH_VERSION-}" ] || local ALIAS_PATH
   for ALIAS_PATH in "${NVM_ALIAS_DIR}/${ALIAS}"*; do
-    NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}"
+    (NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}")
   done
 
   [ -n "${KSH_VERSION-}" ] || local ALIAS_NAME
   for ALIAS_NAME in "$(nvm_node_prefix)" "stable" "unstable" "$(nvm_iojs_prefix)"; do
     if [ ! -f "${NVM_ALIAS_DIR}/${ALIAS_NAME}" ] && ([ -z "${ALIAS}" ] || [ "${ALIAS_NAME}" = "${ALIAS}" ]); then
-      NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_default_alias "${ALIAS_NAME}"
+      (NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_default_alias "${ALIAS_NAME}")
     fi
   done
 
   [ -n "${KSH_VERSION-}" ] || local LTS_ALIAS
   for ALIAS_PATH in "${NVM_ALIAS_DIR}/lts/${ALIAS}"*; do
-    LTS_ALIAS="$(NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_LTS=true nvm_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}")"
+    (LTS_ALIAS="$(NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_LTS=true nvm_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}")")
     if [ -n "${LTS_ALIAS}" ]; then
       nvm_echo "${LTS_ALIAS}"
     fi
