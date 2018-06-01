@@ -54,11 +54,9 @@ nvm_command_info() {
   if type "${COMMAND}" | nvm_grep -q hashed; then
     INFO="$(type "${COMMAND}" | command sed -E 's/\(|\)//g' | command awk '{print $4}')"
   elif type "${COMMAND}" | nvm_grep -q aliased; then
-    # shellcheck disable=SC2230
-    INFO="$(which "${COMMAND}") ($(type "${COMMAND}" | command awk '{ $1=$2=$3=$4="" ;print }' | command sed -e 's/^\ *//g' -Ee "s/\`|'//g"))"
+    INFO="$(command -v "${COMMAND}") ($(type "${COMMAND}" | command awk '{ $1=$2=$3=$4="" ;print }' | command sed -e 's/^\ *//g' -Ee "s/\`|'//g"))"
   elif type "${COMMAND}" | nvm_grep -q "^${COMMAND} is an alias for"; then
-    # shellcheck disable=SC2230
-    INFO="$(which "${COMMAND}") ($(type "${COMMAND}" | command awk '{ $1=$2=$3=$4=$5="" ;print }' | command sed 's/^\ *//g'))"
+    INFO="$(command -v "${COMMAND}") ($(type "${COMMAND}" | command awk '{ $1=$2=$3=$4=$5="" ;print }' | command sed 's/^\ *//g'))"
   elif type "${COMMAND}" | nvm_grep -q "^${COMMAND} is \\/"; then
     INFO="$(type "${COMMAND}" | command awk '{print $3}')"
   else
@@ -3248,7 +3246,7 @@ nvm() {
       if [ "_${VERSION}" = '_system' ]; then
         if nvm_has_system_iojs >/dev/null 2>&1 || nvm_has_system_node >/dev/null 2>&1; then
           local NVM_BIN
-          NVM_BIN="$(nvm use system >/dev/null 2>&1 && command which node)"
+          NVM_BIN="$(nvm use system >/dev/null 2>&1 && command -v node)"
           if [ -n "${NVM_BIN}" ]; then
             nvm_echo "${NVM_BIN}"
             return
@@ -3566,7 +3564,7 @@ nvm_supports_source_options() {
 }
 
 nvm_supports_xz() {
-  if [ -z "${1-}" ] || ! command which xz >/dev/null 2>&1; then
+  if [ -z "${1-}" ] || ! command -v xz >/dev/null 2>&1; then
     return 1
   fi
 

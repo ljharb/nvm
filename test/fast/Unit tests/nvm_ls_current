@@ -19,6 +19,7 @@ fi
 
 rm -rf "$TEST_DIR"
 mkdir "$TEST_DIR"
+ln -s "$(command which command)" "$TEST_DIR/command"
 ln -s "$(command which which)" "$TEST_DIR/which"
 ln -s "$(command which dirname)" "$TEST_DIR/dirname"
 ln -s "$(command which printf)" "$TEST_DIR/printf"
@@ -30,9 +31,11 @@ echo "#!/bin/bash" > "$TEST_DIR/node"
 echo "echo 'VERSION FOO!'" > "$TEST_DIR/node"
 chmod a+x "$TEST_DIR/node"
 
-[ "$(alias nvm_tree_contains_path='return_zero' && PATH="$TEST_DIR" nvm_ls_current)" = "VERSION FOO!" ] || die 'when activated, did not return nvm node version'
+OUTPUT="$(alias nvm_tree_contains_path='return_zero' && PATH="$TEST_DIR" nvm_ls_current)"
+[ "${OUTPUT}" = "VERSION FOO!" ] || die "when activated, did not return nvm node version; got >${OUTPUT}<"
 
 alias node='node --harmony'
-[ "$(alias nvm_tree_contains_path='return_zero' && PATH="$TEST_DIR" nvm_ls_current)" = "VERSION FOO!" ] || die 'when activated and node aliased, did not return nvm node version'
+OUTPUT="$(alias nvm_tree_contains_path='return_zero' && PATH="$TEST_DIR" nvm_ls_current)"
+[ "${OUTPUT}" = "VERSION FOO!" ] || die "when activated and node aliased, did not return nvm node version: got >${OUTPUT}<"
 
 cleanup
