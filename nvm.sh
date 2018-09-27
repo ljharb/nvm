@@ -1209,7 +1209,7 @@ nvm_ls_remote_index_tab() {
           print alias, version
         }
       }' \
-    | while read -r LTS_ALIAS_LINE; do
+    | while \read -r LTS_ALIAS_LINE; do
       LTS_ALIAS="${LTS_ALIAS_LINE%% *}"
       LTS_VERSION="${LTS_ALIAS_LINE#* }"
       nvm_make_alias "${LTS_ALIAS}" "${LTS_VERSION}" >/dev/null 2>&1
@@ -1419,7 +1419,7 @@ nvm_print_versions() {
   | \sed '1!G;h;$!d' \
   | \awk '{ if ($2 && a[$2]++) { print $1, "(LTS: " $2 ")" } else if ($2) { print $1, "(Latest LTS: " $2 ")" } else { print $0 } }' \
   | \sed '1!G;h;$!d' \
-  | while read -r VERSION_LINE; do
+  | while \read -r VERSION_LINE; do
     VERSION="${VERSION_LINE%% *}"
     LTS="${VERSION_LINE#* }"
     FORMAT='%15s'
@@ -3528,7 +3528,7 @@ nvm_get_default_packages() {
     trap "rm -rf '$WORK'" EXIT
     # shellcheck disable=SC1003
     sed -e '$a\' "${NVM_DEFAULT_PACKAGE_FILE}" > "${WORK}/default-packages"
-    while IFS=' ' read -r line; do
+    while IFS=' ' \read -r line; do
       # Skip empty lines.
       [ -n "${line-}" ] || continue
 
