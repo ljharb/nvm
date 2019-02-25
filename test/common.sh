@@ -24,6 +24,26 @@ make_echo() {
   chmod a+x "$1"
 }
 
+make_fake_lts() {
+  local LTS
+  LTS="${1-}"
+
+  local VERSION
+  VERSION="${2-}"
+
+  local FORMATTED_VERSION
+  FORMATTED_VERSION="$(nvm_format_version "${VERSION}")"
+
+  local EXIT_CODE
+
+  make_fake_node "${FORMATTED_VERSION}" || {
+    EXIT_CODE=$?
+    echo >&2 'failed to make fake node'
+    return $EXIT_CODE
+  }
+  nvm_make_alias "lts/${LTS}" "${FORMATTED_VERSION}"
+}
+
 make_fake_node() {
   local VERSION
   VERSION="${1-}"

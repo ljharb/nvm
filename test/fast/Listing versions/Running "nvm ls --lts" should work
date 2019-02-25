@@ -1,0 +1,25 @@
+#!/bin/sh
+
+die () { echo "$@" ; unset -f nvm_has_system_node nvm_has_system_iojs; exit 1; }
+
+\. ../../../nvm.sh
+\. ../../common.sh
+
+nvm_has_system_node() { return 1; }
+nvm_has_system_iojs() { return 1; }
+nvm_ls() {
+  echo "v0.12.1
+v4.0.1"
+}
+
+make_fake_node v0.12.1
+make_fake_lts never v4.0.1
+
+OUTPUT="$(nvm ls --no-colors --no-alias)"
+EXPECTED_OUTPUT="        v0.12.1 *
+         v4.0.1 *"
+[ "${OUTPUT}" = "${EXPECTED_OUTPUT}" ] || die "1: expected >${EXPECTED_OUTPUT}<; got >${OUTPUT}<"
+
+OUTPUT="$(nvm ls --no-colors --no-alias --lts)"
+EXPECTED_OUTPUT="         v4.0.1 *"
+[ "${OUTPUT}" = "${EXPECTED_OUTPUT}" ] || die "2: expected >${EXPECTED_OUTPUT}<; got >${OUTPUT}<"

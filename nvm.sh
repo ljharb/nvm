@@ -704,7 +704,7 @@ nvm_print_formatted_alias() {
       DEST_FORMAT='\033[1;31m%s\033[0m'
       VERSION_FORMAT='\033[1;31m%s\033[0m'
     fi
-    if [ "_${NVM_LTS-}" = '_true' ]; then
+    if [ "_${NVM_IS_LTS-}" = '_true' ]; then
       ALIAS_FORMAT='\033[1;33m%s\033[0m'
     fi
     if [ "_${DEST%/*}" = "_lts" ]; then
@@ -738,7 +738,10 @@ nvm_print_alias_path() {
   local DEST
   DEST="$(nvm_alias "${ALIAS}" 2>/dev/null)" ||:
   if [ -n "${DEST}" ]; then
-    NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_LTS="${NVM_LTS-}" DEFAULT=false nvm_print_formatted_alias "${ALIAS}" "${DEST}"
+    if [ "${NVM_LTS-}" = '*' ] && ; then
+    fi
+    nvm_err "$NVM_LTS" "${NVM_IS_LTS:-false}" "$ALIAS" "$DEST"
+    NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_LTS="${NVM_LTS-}" NVM_IS_LTS="${NVM_IS_LTS-}" DEFAULT=false nvm_print_formatted_alias "${ALIAS}" "${DEST}"
   fi
 }
 
@@ -752,7 +755,8 @@ nvm_print_default_alias() {
   local DEST
   DEST="$(nvm_print_implicit_alias local "${ALIAS}")"
   if [ -n "${DEST}" ]; then
-    NVM_NO_COLORS="${NVM_NO_COLORS-}" DEFAULT=true nvm_print_formatted_alias "${ALIAS}" "${DEST}"
+    nvm_err default "$NVM_LTS" "$NVM_IS_LTS" "$ALIAS" "$DEST"
+    NVM_LTS="${NVM_LTS-}" NVM_NO_COLORS="${NVM_NO_COLORS-}" DEFAULT=true nvm_print_formatted_alias "${ALIAS}" "${DEST}"
   fi
 }
 
@@ -785,7 +789,7 @@ nvm_list_aliases() {
   (
     local ALIAS_PATH
     for ALIAS_PATH in "${NVM_ALIAS_DIR}/${ALIAS}"*; do
-      NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}" &
+      NVM_LTS="${NVM_LTS-}" NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}" &
     done
     wait
   ) | sort
@@ -795,14 +799,16 @@ nvm_list_aliases() {
     for ALIAS_NAME in "$(nvm_node_prefix)" "stable" "unstable"; do
       {
         if [ ! -f "${NVM_ALIAS_DIR}/${ALIAS_NAME}" ] && { [ -z "${ALIAS}" ] || [ "${ALIAS_NAME}" = "${ALIAS}" ]; }; then
-          NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_default_alias "${ALIAS_NAME}"
+          NVM_LTS="${NVM_LTS-}" NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_default_alias "${ALIAS_NAME}"
         fi
       } &
     done
     wait
-    ALIAS_NAME="$(nvm_iojs_prefix)"
-    if [ ! -f "${NVM_ALIAS_DIR}/${ALIAS_NAME}" ] && { [ -z "${ALIAS}" ] || [ "${ALIAS_NAME}" = "${ALIAS}" ]; }; then
-      NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_default_alias "${ALIAS_NAME}"
+    if [ -z "${NVM_LTS-}" ]; then
+      ALIAS_NAME="$(nvm_iojs_prefix)"
+      if [ ! -f "${NVM_ALIAS_DIR}/${ALIAS_NAME}" ] && { [ -z "${ALIAS}" ] || [ "${ALIAS_NAME}" = "${ALIAS}" ]; }; then
+        NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" nvm_print_default_alias "${ALIAS_NAME}"
+      fi
     fi
   ) | sort
 
@@ -810,7 +816,7 @@ nvm_list_aliases() {
     local LTS_ALIAS
     for ALIAS_PATH in "${NVM_ALIAS_DIR}/lts/${ALIAS}"*; do
       {
-        LTS_ALIAS="$(NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_LTS=true nvm_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}")"
+        LTS_ALIAS="$(NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_LTS="${NVM_LTS-}" NVM_IS_LTS=true nvm_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}")"
         if [ -n "${LTS_ALIAS}" ]; then
           nvm_echo "${LTS_ALIAS}"
         fi
@@ -3184,12 +3190,8 @@ nvm() {
       while [ $# -gt 0 ]; do
         case "${1-}" in
           --) ;;
-          --lts)
-            NVM_LTS='*'
-          ;;
-          --lts=*)
-            NVM_LTS="${1##--lts=}"
-          ;;
+          --lts) NVM_LTS='*' ;;
+          --lts=*) NVM_LTS="${1##--lts=}" ;;
           --no-colors) NVM_NO_COLORS="${1}" ;;
           --*)
             nvm_err "Unsupported option \"${1}\"."
@@ -3281,12 +3283,15 @@ nvm() {
       local ALIAS
       local TARGET
       local NVM_NO_COLORS
+      local NVM_LTS
       ALIAS='--'
       TARGET='--'
       while [ $# -gt 0 ]; do
         case "${1-}" in
           --) ;;
           --no-colors) NVM_NO_COLORS="${1}" ;;
+          --lts) NVM_LTS='*' ;;
+          --lts=*) NVM_LTS="${1##--lts=}" ;;
           --*)
             nvm_err "Unsupported option \"${1}\"."
             return 55
@@ -3301,6 +3306,12 @@ nvm() {
         esac
         shift
       done
+
+      if [ -n "${NVM_LTS-}" ] && ([ "${TARGET}" != '--' ] || [ "${ALIAS}" != '--' ]); then
+        # an LTS filter was passed, *and* a target or an alias was passed
+        nvm_err 'An LTS filter is not supported when passing an alias name, or creating/removing an alias.'
+        return 55
+      fi
 
       if [ -z "${TARGET}" ]; then
         # for some reason the empty string was explicitly passed as the target
@@ -3324,7 +3335,7 @@ nvm() {
           unset ALIAS
         fi
 
-        nvm_list_aliases "${ALIAS-}"
+        NVM_LTS="${NVM_LTS-}" nvm_list_aliases "${ALIAS-}"
       fi
     ;;
     "unalias")
@@ -3433,12 +3444,8 @@ nvm() {
       while [ $# -gt 0 ]; do
         case "${1-}" in
           --) ;;
-          --lts)
-            NVM_LTS='*'
-          ;;
-          --lts=*)
-            NVM_LTS="${1##--lts=}"
-          ;;
+          --lts) NVM_LTS='*' ;;
+          --lts=*) NVM_LTS="${1##--lts=}" ;;
           --*)
             nvm_err "Unsupported option \"${1}\"."
             return 55
