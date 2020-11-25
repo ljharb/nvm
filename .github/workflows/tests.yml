@@ -1,0 +1,69 @@
+name: 'Test Suites'
+
+on: [pull_request, push]
+
+jobs:
+  tests:
+    name: 'test suites'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        shell:
+          - sh
+          - dash
+          - ksh
+          - bash
+          - zsh
+        suite:
+          - fast
+          - sourcing
+          - slow
+          - installation_node
+          - installation_iojs
+        installer:
+          - curl
+          - wget
+        include:
+          - suite: install_script
+            shell: bash
+            installer: curl
+          - suite: install_script
+            shell: bash
+            installer: wget
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ljharb/actions/node/run@main
+        name: 'npm install && version checks'
+        with:
+          before_install: |
+            ${{ matrix.shell }} --version 2> /dev/null || dpkg -s ${{ matrix.shell }} 2> /dev/null || which ${{ matrix.shell }}
+            curl --version
+            wget --version
+          node-version: 'lts/*'
+          skip-ls-check: true
+          shell-command: echo installed
+      # there are 5 repetitions of this, because Github Actions seems to require a hardcoded `shell:` value
+      - run: make TEST_SUITE=${{ matrix.suite }} URCHIN="$(npm bin)/urchin" test-${{ matrix.shell }}
+        shell: bash
+        if: ${{ matrix.shell }} == bash
+      - run: make TEST_SUITE=${{ matrix.suite }} URCHIN="$(npm bin)/urchin" test-${{ matrix.shell }}
+        shell: zsh
+        if: ${{ matrix.shell }} == zsh
+      - run: make TEST_SUITE=${{ matrix.suite }} URCHIN="$(npm bin)/urchin" test-${{ matrix.shell }}
+        shell: ksh
+        if: ${{ matrix.shell }} == ksh
+      - run: make TEST_SUITE=${{ matrix.suite }} URCHIN="$(npm bin)/urchin" test-${{ matrix.shell }}
+        shell: sh
+        if: ${{ matrix.shell }} == sh
+      - run: make TEST_SUITE=${{ matrix.suite }} URCHIN="$(npm bin)/urchin" test-${{ matrix.shell }}
+        shell: dash
+        if: ${{ matrix.shell }} == dash
+
+  nvm:
+    name: 'all test suites, all shells'
+    needs: [tests]
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo tests completed'
