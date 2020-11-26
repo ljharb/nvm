@@ -45,21 +45,36 @@ jobs:
           skip-ls-check: true
           shell-command: echo installed
       # there are 5 repetitions of this, because Github Actions seems to require a hardcoded `shell:` value
-      - run: make TEST_SUITE=${{ matrix.suite }} URCHIN="$(npm bin)/urchin" test-${{ matrix.shell }}
+      - run: make test-${{ matrix.shell }}
         shell: bash
         if: ${{ matrix.shell }} == bash
-      - run: make TEST_SUITE=${{ matrix.suite }} URCHIN="$(npm bin)/urchin" test-${{ matrix.shell }}
+        env:
+          TEST_SUITE: ${{ matrix.suite }}
+          URCHIN: "$(npm bin)/urchin"
+      - run: make test-${{ matrix.shell }}
         shell: zsh
         if: ${{ matrix.shell }} == zsh
-      - run: make TEST_SUITE=${{ matrix.suite }} URCHIN="$(npm bin)/urchin" test-${{ matrix.shell }}
+        env:
+          TEST_SUITE: ${{ matrix.suite }}
+          URCHIN: "$(npm bin)/urchin"
+      - run: make test-${{ matrix.shell }}
         shell: ksh
         if: ${{ matrix.shell }} == ksh
-      - run: make TEST_SUITE=${{ matrix.suite }} URCHIN="$(npm bin)/urchin" test-${{ matrix.shell }}
+        env:
+          TEST_SUITE: ${{ matrix.suite }}
+          URCHIN: "$(npm bin)/urchin"
+      - run: make test-${{ matrix.shell }}
         shell: sh
         if: ${{ matrix.shell }} == sh
-      - run: make TEST_SUITE=${{ matrix.suite }} URCHIN="$(npm bin)/urchin" test-${{ matrix.shell }}
+        env:
+          TEST_SUITE: ${{ matrix.suite }}
+          URCHIN: "$(npm bin)/urchin"
+      - run: make test-${{ matrix.shell }}
         shell: dash
         if: ${{ matrix.shell }} == dash
+        env:
+          TEST_SUITE: ${{ matrix.suite }}
+          URCHIN: "$(npm bin)/urchin"
 
   nvm:
     name: 'all test suites, all shells'
