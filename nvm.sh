@@ -8,13 +8,16 @@
 
 # "local" warning, quote expansion warning
 # shellcheck disable=SC2039,SC2016,SC2001
-{ # this ensures the entire script is downloaded #
+{ nvm_init() { # this ensures the entire script is downloaded #
 
 NVM_SCRIPT_SOURCE="$_"
 
 nvm_is_zsh() {
   [ -n "${ZSH_VERSION-}" ]
 }
+
+# disable aliases for the lifetime of sourcing nvm
+nvm_is_zsh && setopt local_options no_aliases
 
 nvm_stdout_is_terminal() {
   [ -t 1 ]
@@ -747,6 +750,7 @@ nvm_set_colors() {
 }
 
 nvm_get_colors() {
+  nvm_is_zsh && setopt local_options no_aliases
   local COLOR
   local SYS_COLOR
   if [ -n "${NVM_COLORS-}" ]; then
@@ -784,23 +788,24 @@ nvm_get_colors() {
 }
 
 nvm_print_color_code() {
+  nvm_is_zsh && setopt local_options no_aliases
   case "${1-}" in
-    'r') nvm_echo '0;31m';;
-    'R') nvm_echo '1;31m';;
-    'g') nvm_echo '0;32m';;
-    'G') nvm_echo '1;32m';;
-    'b') nvm_echo '0;34m';;
-    'B') nvm_echo '1;34m';;
-    'c') nvm_echo '0;36m';;
-    'C') nvm_echo '1;36m';;
-    'm') nvm_echo '0;35m';;
-    'M') nvm_echo '1;35m';;
-    'y') nvm_echo '0;33m';;
-    'Y') nvm_echo '1;33m';;
-    'k') nvm_echo '0;30m';;
-    'K') nvm_echo '1;30m';;
-    'e') nvm_echo '0;37m';;
-    'W') nvm_echo '1;37m';;
+    r) nvm_echo '0;31m';;
+    R) nvm_echo '1;31m';;
+    g) nvm_echo '0;32m';;
+    G) nvm_echo '1;32m';;
+    b) nvm_echo '0;34m';;
+    B) nvm_echo '1;34m';;
+    c) nvm_echo '0;36m';;
+    C) nvm_echo '1;36m';;
+    m) nvm_echo '0;35m';;
+    M) nvm_echo '1;35m';;
+    y) nvm_echo '0;33m';;
+    Y) nvm_echo '1;33m';;
+    k) nvm_echo '0;30m';;
+    K) nvm_echo '1;30m';;
+    e) nvm_echo '0;37m';;
+    W) nvm_echo '1;37m';;
     *) nvm_err 'Invalid color code';
         return 1
     ;;
@@ -4112,4 +4117,7 @@ nvm_process_parameters() {
 
 nvm_process_parameters "$@"
 
+}
+nvm_init
+unset -f nvm_init
 } # this ensures the entire script is downloaded #

@@ -7,8 +7,34 @@ rm -rf ../../v0.10.7
 rm -rf ../../v0.9.7
 rm -rf ../../v0.9.12
 
-\. ../../nvm.sh
-nvm install 0.10.1 || echo >&2 'nvm install 0.10.1 failed'
-nvm install 0.10.3 || echo >&2 'nvm install 0.10.3 failed'
-nvm unalias default || 'removing default alias failed'
-nvm unload || echo >&2 'nvm unload failed'
+if [ -n "${ZSH_VERSION-}" ]; then
+  # Functions that use single-letter options are susceptible to errors
+  # caused by the following global aliases, which Zsh replaces everywhere.
+  # Let's make sure that our code works correctly if they are defined.
+
+  # these are set by omz: https://github.com/ohmyzsh/ohmyzsh/tree/1ac40cd4456230f09bf0258b173304929d118992/plugins/common-aliases
+  alias -g R='| less -S'
+  alias -g G='| less -S'
+  # these are set by yadr: https://github.com/skwp/dotfiles/blob/5c487de9b81cd4265ecc9df74477e410ffbda6a1/zsh/zsh-aliases.zsh
+  alias -g C='| wc -l'
+  alias -g H='| head'
+  alias -g L="| less"
+  alias -g N="| /dev/null"
+  alias -g S='| sort'
+  alias -g G='| grep'
+fi
+
+set -e
+
+(
+  \. ../../nvm.sh || echo >&2 'sourcing nvm.sh failed'
+  nvm install 0.10.1 || echo >&2 'nvm install 0.10.1 failed'
+  nvm install 0.10.3 || echo >&2 'nvm install 0.10.3 failed'
+  nvm unalias default || 'removing default alias failed'
+  nvm unload || echo >&2 'nvm unload failed'
+)
+
+if [ -n "${ZSH_VERSION-}" ]; then
+  unalias -g R
+  unalias -g G
+fi
