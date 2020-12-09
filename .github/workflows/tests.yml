@@ -6,6 +6,9 @@ jobs:
   tests:
     name: 'test suites'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
 
     strategy:
       matrix:
@@ -44,34 +47,7 @@ jobs:
           node-version: 'lts/*'
           skip-ls-check: true
           shell-command: echo installed
-      # there are 5 repetitions of this, because Github Actions seems to require a hardcoded `shell:` value
       - run: make test-${{ matrix.shell }}
-        shell: bash
-        if: ${{ matrix.shell }} == bash
-        env:
-          TEST_SUITE: ${{ matrix.suite }}
-          URCHIN: "$(npm bin)/urchin"
-      - run: make test-${{ matrix.shell }}
-        shell: zsh
-        if: ${{ matrix.shell }} == zsh
-        env:
-          TEST_SUITE: ${{ matrix.suite }}
-          URCHIN: "$(npm bin)/urchin"
-      - run: make test-${{ matrix.shell }}
-        shell: ksh
-        if: ${{ matrix.shell }} == ksh
-        env:
-          TEST_SUITE: ${{ matrix.suite }}
-          URCHIN: "$(npm bin)/urchin"
-      - run: make test-${{ matrix.shell }}
-        shell: sh
-        if: ${{ matrix.shell }} == sh
-        env:
-          TEST_SUITE: ${{ matrix.suite }}
-          URCHIN: "$(npm bin)/urchin"
-      - run: make test-${{ matrix.shell }}
-        shell: dash
-        if: ${{ matrix.shell }} == dash
         env:
           TEST_SUITE: ${{ matrix.suite }}
           URCHIN: "$(npm bin)/urchin"
