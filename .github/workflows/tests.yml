@@ -13,11 +13,11 @@ jobs:
     strategy:
       matrix:
         shell:
+          - bash
           - sh
           - dash
-          - ksh
-          - bash
-          - zsh
+          # - ksh
+          # - zsh # https://github.com/actions/virtual-environments/issues/264
         suite:
           - fast
           - sourcing
@@ -37,13 +37,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - run: ${{ matrix.shell }} --version 2> /dev/null || dpkg -s ${{ matrix.shell }} 2> /dev/null || which ${{ matrix.shell }}
+      - run: curl --version
+      - run: wget --version
       - uses: ljharb/actions/node/run@main
         name: 'npm install && version checks'
         with:
-          before_install: |
-            ${{ matrix.shell }} --version 2> /dev/null || dpkg -s ${{ matrix.shell }} 2> /dev/null || which ${{ matrix.shell }}
-            curl --version
-            wget --version
           node-version: 'lts/*'
           skip-ls-check: true
           shell-command: echo installed
