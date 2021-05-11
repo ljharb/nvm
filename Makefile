@@ -71,6 +71,8 @@ _ensure-clean:
 # Makes a release; invoke with `make TAG=<versionOrIncrementSpec> release`.
 .PHONY: release
 release: _ensure-tag _ensure-clean _ensure-current-version
+	cat package.json
+	git status
 	@old_ver=`git describe --abbrev=0 --tags --match 'v[0-9]*.[0-9]*.[0-9]*'` || { echo "Failed to determine current version." >&2; exit 1; }; old_ver=$${old_ver#v}; \
 	new_ver=`echo "$(TAG)" | sed 's/^v//'`; new_ver=$${new_ver:-patch}; \
 	if printf "$$new_ver" | grep -q '^[0-9]'; then \
@@ -81,5 +83,6 @@ release: _ensure-tag _ensure-clean _ensure-current-version
 	fi; \
 	printf "=== Bumping version **$$old_ver** to **$$new_ver** before committing and tagging:\n=== TYPE 'proceed' TO PROCEED, anything else to abort: " && read response && [ "$$response" = 'proceed' ] || { echo 'Aborted.' >&2; exit 2; }; \
 	replace "$$old_ver" "$$new_ver" $(VERSIONED_FILES) && \
+	printf "Replacing is cool $(VERSIONED_FILES) " && \
 	git commit -m "v$$new_ver" $(VERSIONED_FILES) && \
 	git tag -a "v$$new_ver"
