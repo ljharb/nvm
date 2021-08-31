@@ -13,6 +13,11 @@
 # shellcheck disable=SC3028
 NVM_SCRIPT_SOURCE="$_"
 
+NVM_FLAGS="$-"
+if [ "${-#*a}" != "$-" ] || [ "${-#*e}" != "$-" ]; then
+  set +ae
+fi
+
 nvm_is_zsh() {
   [ -n "${ZSH_VERSION-}" ]
 }
@@ -2648,12 +2653,15 @@ nvm() {
   local DEFAULT_IFS
   DEFAULT_IFS=" $(nvm_echo t | command tr t \\t)
 "
-  if [ "${-#*e}" != "$-" ]; then
-    set +e
+  local NVM_FLAGS
+  NVM_FLAGS="$-"
+  if [ "${-#*e}" != "$-" ] || [ "${-#*a}" != "$-" ]; then
+    set +ae
     local EXIT_CODE
     IFS="${DEFAULT_IFS}" nvm "$@"
     EXIT_CODE="$?"
-    set -e
+    set -$NVM_FLAGS
+    unset NVM_FLAGS 2> /dev/null
     return "$EXIT_CODE"
   elif [ "${IFS}" != "${DEFAULT_IFS}" ]; then
     IFS="${DEFAULT_IFS}" nvm "$@"
@@ -4234,9 +4242,12 @@ nvm_process_parameters() {
     esac
     shift
   done
+
   nvm_auto "${NVM_AUTO_MODE}"
 }
 
 nvm_process_parameters "$@"
+set -$NVM_FLAGS
+unset NVM_FLAGS 2> /dev/null
 
 } # this ensures the entire script is downloaded #
