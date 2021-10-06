@@ -3,6 +3,7 @@ dist: xenial
 addons:
   apt:
     packages:
+      - openssl
       - zsh
     #  - ksh
     #  - gcc-4.8
