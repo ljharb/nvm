@@ -3,6 +3,7 @@ dist: focal
 addons:
   apt:
     packages:
+      - openssl
       - zsh
     #  - ksh
     #  - gcc-4.8
