@@ -4,6 +4,7 @@ set -ex
 
 # Remove temporary files
 (
+  >&2 pwd
   cd ../..
 
   type setopt >/dev/null 2>&1 && setopt NULL_GLOB

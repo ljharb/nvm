@@ -3,6 +3,7 @@
 set -ex
 
 (
+  >&2 pwd
   cd ../..
 
   # Restore
