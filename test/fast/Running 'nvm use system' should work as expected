@@ -7,6 +7,8 @@ cleanup() {
 }
 die() { echo "$@" ; cleanup ; exit 1; }
 
+export NVM_DIR="$(cd ../.. && pwd)"
+
 \. ../../nvm.sh
 
 nvm_has_system_node() { return 0; }

@@ -19,10 +19,14 @@ jobs:
         include:
           - shell: bash
             suite: install_script
-      #   shell:
-      #     - bash
-      #   suite:
-      #     - install_script
+        shell:
+          - sh
+          - dash
+          - bash
+          # - zsh
+          # - ksh
+        suite:
+          - fast
 
     steps:
       - name: Harden Runner
