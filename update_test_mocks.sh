@@ -54,6 +54,9 @@ nvm_make_alias() {
     echo "${1#lts/}" >> "$LTS_NAMES_PATH"
   fi
 }
+
 nvm ls-remote --lts > /dev/null
+
+sort -r -t. -u -k1,1 -k2,2nr -k3,3nr -k4,4nr "${LTS_NAMES_PATH}" -o "${LTS_NAMES_PATH}"
 
 echo "done! Don't forget to git commit them."

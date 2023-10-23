@@ -1073,7 +1073,17 @@ nvm_make_alias() {
     nvm_err "an alias target version is required"
     return 2
   fi
-  nvm_echo "${VERSION}" | tee "$(nvm_alias_path)/${ALIAS}" >/dev/null
+
+  local NVM_ALIAS_PATH
+  NVM_ALIAS_PATH="$(nvm_alias_path)/${ALIAS}"
+
+  if [ "${3-}" = '1' ]; then
+    nvm_echo "${VERSION}" | tee -a "${NVM_ALIAS_PATH}" >/dev/null
+    command sort -t. -u -k1,1 -k2,2nr -k3,3nr -k4,4nr "${NVM_ALIAS_PATH}" -o "${NVM_ALIAS_PATH}"
+  else
+    nvm_echo "${VERSION}" | tee "${NVM_ALIAS_PATH}" >/dev/null
+  fi
+
 }
 
 nvm_list_aliases() {
@@ -1517,7 +1527,7 @@ nvm_ls_remote_index_tab() {
   command mkdir -p "$(nvm_alias_path)/lts"
   { command awk '{
         if ($10 ~ /^\-?$/) { next }
-        if ($10 && !a[tolower($10)]++) {
+        if ($10) {
           if (alias) { print alias, version }
           alias_name = "lts/" tolower($10)
           if (!alias) { print "lts/*", alias_name }
@@ -1533,7 +1543,7 @@ nvm_ls_remote_index_tab() {
     | while read -r LTS_ALIAS_LINE; do
       LTS_ALIAS="${LTS_ALIAS_LINE%% *}"
       LTS_VERSION="${LTS_ALIAS_LINE#* }"
-      nvm_make_alias "${LTS_ALIAS}" "${LTS_VERSION}" >/dev/null 2>&1
+      nvm_make_alias "${LTS_ALIAS}" "${LTS_VERSION}" 1 >/dev/null 2>&1
     done; } << EOF
 $VERSION_LIST
 EOF
