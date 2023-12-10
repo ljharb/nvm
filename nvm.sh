@@ -2384,12 +2384,12 @@ nvm_extract_tarball() {
 
   if [ "${NVM_OS}" = 'openbsd' ]; then
     if [ "${tar_compression_flag}" = 'J' ]; then
-      command xzcat "${TARBALL}" | "${tar}" -xf - -C "${TMPDIR}" -s '/[^\/]*\///' || return 1
+      command xzcat "${TARBALL}" | "${tar}" --no-same-owner -xf - -C "${TMPDIR}" -s '/[^\/]*\///' || return 1
     else
-      command "${tar}" -x${tar_compression_flag}f "${TARBALL}" -C "${TMPDIR}" -s '/[^\/]*\///' || return 1
+      command "${tar}" --no-same-owner -x${tar_compression_flag}f "${TARBALL}" -C "${TMPDIR}" -s '/[^\/]*\///' || return 1
     fi
   else
-    command "${tar}" -x${tar_compression_flag}f "${TARBALL}" -C "${TMPDIR}" --strip-components 1 || return 1
+    command "${tar}" --no-same-owner -x${tar_compression_flag}f "${TARBALL}" -C "${TMPDIR}" --strip-components 1 || return 1
   fi
 }
 
@@ -3871,7 +3871,12 @@ nvm() {
           nvm_echo "Running node ${VERSION}$(nvm use --silent "${VERSION}" && nvm_print_npm_version)"
         fi
       fi
-      NODE_VERSION="${VERSION}" "${NVM_DIR}/nvm-exec" "$@"
+      local NVM_EXEC
+      NVM_EXEC="${NVM_DIR}/nvm-exec"
+      if [ ! -f "${NVM_EXEC}" ]; then
+        NVM_EXEC="$(dirname "${BASH_SOURCE[0]-}")/nvm-exec"
+      fi
+      NODE_VERSION="${VERSION}" "${NVM_EXEC}" "$@"
     ;;
     "ls" | "list")
       local PATTERN
