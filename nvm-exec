@@ -2,10 +2,10 @@
 
 SOURCE=${BASH_SOURCE[0]}
 if [ -L "${SOURCE}" ]; then
-  command cd "$(dirname "${SOURCE}")" || exit 127
+  command cd "$(command dirname "${SOURCE}")" || exit 127
   SOURCE="$(readlink "${SOURCE}")"
 fi
-DIR="$(command cd "$(dirname "${SOURCE}")" && pwd)"
+DIR="$(command cd "$(command dirname "${SOURCE}")" && pwd)"
 
 unset NVM_CD_FLAGS
 

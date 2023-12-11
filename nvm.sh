@@ -403,7 +403,7 @@ if [ -z "${NVM_DIR-}" ]; then
     NVM_SCRIPT_SOURCE="${BASH_SOURCE[0]}"
   fi
   # shellcheck disable=SC2086
-  NVM_DIR="$(nvm_cd ${NVM_CD_FLAGS} "$(dirname "${NVM_SCRIPT_SOURCE:-$0}")" >/dev/null && \pwd)"
+  NVM_DIR="$(nvm_cd ${NVM_CD_FLAGS} "$(command dirname "${NVM_SCRIPT_SOURCE:-$0}")" >/dev/null && \pwd)"
   export NVM_DIR
 else
   # https://unix.stackexchange.com/a/198289
@@ -431,11 +431,11 @@ nvm_tree_contains_path() {
   local previous_pathdir
   previous_pathdir="${node_path}"
   local pathdir
-  pathdir=$(dirname "${previous_pathdir}")
+  pathdir=$(command dirname "${previous_pathdir}")
   while [ "${pathdir}" != '' ] && [ "${pathdir}" != '.' ] && [ "${pathdir}" != '/' ] &&
       [ "${pathdir}" != "${tree}" ] && [ "${pathdir}" != "${previous_pathdir}" ]; do
     previous_pathdir="${pathdir}"
-    pathdir=$(dirname "${previous_pathdir}")
+    pathdir=$(command dirname "${previous_pathdir}")
   done
   [ "${pathdir}" = "${tree}" ]
 }
@@ -2152,7 +2152,7 @@ nvm_install_binary() {
   nvm_echo "Downloading and installing ${NODE_OR_IOJS-} ${VERSION}..."
   TARBALL="$(PROGRESS_BAR="${PROGRESS_BAR}" nvm_download_artifact "${FLAVOR}" binary "${TYPE-}" "${VERSION}" | command tail -1)"
   if [ -f "${TARBALL}" ]; then
-    TMPDIR="$(dirname "${TARBALL}")/files"
+    TMPDIR="$(command dirname "${TARBALL}")/files"
   fi
 
   if nvm_install_binary_extract "${NVM_OS}" "${PREFIXED_VERSION}" "${VERSION}" "${TARBALL}" "${TMPDIR}"; then
@@ -2519,7 +2519,7 @@ nvm_install_source() {
 
   TARBALL="$(PROGRESS_BAR="${PROGRESS_BAR}" nvm_download_artifact "${FLAVOR}" source "${TYPE}" "${VERSION}" | command tail -1)" && \
   [ -f "${TARBALL}" ] && \
-  TMPDIR="$(dirname "${TARBALL}")/files" && \
+  TMPDIR="$(command dirname "${TARBALL}")/files" && \
   if ! (
     # shellcheck disable=SC2086
     command mkdir -p "${TMPDIR}" && \
@@ -3874,7 +3874,7 @@ nvm() {
       local NVM_EXEC
       NVM_EXEC="${NVM_DIR}/nvm-exec"
       if [ ! -f "${NVM_EXEC}" ]; then
-        NVM_EXEC="$(dirname "${BASH_SOURCE[0]-}")/nvm-exec"
+        NVM_EXEC="$(command dirname "${BASH_SOURCE[0]-}")/nvm-exec"
       fi
       NODE_VERSION="${VERSION}" "${NVM_EXEC}" "$@"
     ;;
