@@ -1,6 +1,6 @@
 name: urchin tests
 
-on: [push]
+on: [pull_request, push]
 
 jobs:
   tests:
@@ -13,16 +13,35 @@ jobs:
       run:
         shell: 'script -q -e -c "${{ matrix.shell }} {0}"'
 
+    # defaults:
+    #   run:
+    #     # GitHub Actions run without a TTY device. This is a workaround to get one,
+    #     # based on https://github.com/actions/runner/issues/241#issuecomment-842566950.
+    #     shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'
+
     strategy:
       fail-fast: false
       matrix:
+        shell:
+          - bash
+          - sh
+          - dash
+        suite:
+          - fast
+          # - sourcing
+          # - slow
+          # - installation_node
+          # - installation_iojs
+        installer:
+          - curl
+          - wget
         include:
-          - shell: bash
-            suite: install_script
-      #   shell:
-      #     - bash
-      #   suite:
-      #     - install_script
+          - suite: install_script
+            shell: bash
+            installer: curl
+          - suite: install_script
+            shell: bash
+            installer: wget
 
     steps:
       - name: Harden Runner
@@ -38,15 +57,19 @@ jobs:
       - run: sudo ${{ matrix.shell }} --version 2> /dev/null || dpkg -s ${{ matrix.shell }} 2> /dev/null || which ${{ matrix.shell }}
       - run: curl --version
       - run: wget --version
-      - uses: ljharb/actions/node/run@main
-        name: 'npm install && version checks'
+      - uses: ljharb/actions/node/install@main
+        name: 'nvm install node && npm install'
         with:
           node-version: 'lts/*'
           skip-ls-check: true
-          shell-command: echo installed
       - run: npm ls urchin
+      - run: npx which urchin
       - run: env
       - run: make TERM=xterm-256color TEST_SUITE="${{ matrix.suite }}" SHELL="${{ matrix.shell }}" URCHIN="$(npx which urchin)" test-${{ matrix.shell }}
+        working-directory: ${{ env.NVM_DIR }}
+        env:
+          SHELL: ${{ matrix.shell }}
+          TEST_SUITE: ${{ matrix.suite }}
 
   nvm:
     name: 'all test suites, all shells'

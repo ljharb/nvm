@@ -102,6 +102,7 @@ jobs:
         wsl-distrib:
           - Debian
         # - Alpine # fails
+          - Ubuntu-22.04
           - Ubuntu-20.04
           - Ubuntu-18.04
         npm-node-version:
