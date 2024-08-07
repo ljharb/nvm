@@ -1,0 +1,53 @@
+name: Bash Fast Test Suite
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Environment setup
+        run: |
+          sudo apt-get update
+          sudo sed -i 's/mozilla\/DST_Root_CA_X3.crt/!mozilla\/DST_Root_CA_X3.crt/g' /etc/ca-certificates.conf
+          sudo update-ca-certificates -f
+          sudo apt-get update
+          sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
+                                   libreadline-dev libsqlite3-dev wget curl llvm \
+                                   libncurses5-dev libncursesw5-dev xz-utils tk-dev \
+                                   libffi-dev liblzma-dev
+          sudo apt-get install -y zsh
+          sudo apt-get install -y make
+
+      - name: Install python
+        run: |
+          curl https://pyenv.run | bash
+          export PYENV_ROOT="$HOME/.pyenv"
+          [ -d $PYENV_ROOT/bin ] && export PATH="$PYENV_ROOT/bin:$PATH"
+          eval "$(pyenv init -)"
+          eval "$(pyenv virtualenv-init -)"
+          pyenv install 2.7
+          pyenv global 2.7
+
+      - name: Setup nvm
+        run: |
+          ./install.sh
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+      - name: Run fast test suite
+        env:
+          CXX: g++
+          CC: gcc
+        run: |
+          source $HOME/.nvm/nvm.sh
+          nvm install 16 && nvm unalias default && npm install && npm prune && npm ls urchin doctoc eclint dockerfile_lint
+          make TEST_SUITE=fast URCHIN="$(npm bin)/urchin" test-bash
+          make TEST_SUITE=fast URCHIN="$(npm bin)/urchin" test-bash
